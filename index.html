@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>ITESA Asistencia - Prueba</title>
+<title>ITESA Asistencia - Prueba QR</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#08131f;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
@@ -19,7 +19,9 @@ button{width:100%;margin-top:12px;padding:15px;border:0;border-radius:12px;backg
 .result{display:none;position:fixed;inset:0;z-index:50;align-items:center;justify-content:center;text-align:center;padding:24px}
 .result.show{display:flex} .ok{background:#0d884a} .warn{background:#9a6700} .bad{background:#a72b2b}
 .result h2{font-size:32px;margin:0 0 10px} .move{font-size:28px;font-weight:800} .time{font-size:42px;font-weight:900;margin:12px 0}
+canvas{display:none}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -27,11 +29,12 @@ button{width:100%;margin-top:12px;padding:15px;border:0;border-radius:12px;backg
 <div class="card">
   <div class="cam">
     <video id="video" autoplay muted playsinline></video>
+    <canvas id="canvas"></canvas>
     <div class="frame"></div>
     <div id="msg" class="msg">Toca ACTIVAR CÁMARA</div>
   </div>
   <button id="activate">📷 ACTIVAR CÁMARA</button>
-  <div id="diag" class="small">Esta prueba solo valida cámara, lectura QR, secuencia y bloqueo de 60 segundos.</div>
+  <div id="diag" class="small">Prueba de cámara + lectura QR + bloqueo de 60 segundos.</div>
 </div>
 </div>
 
@@ -48,8 +51,14 @@ button{width:100%;margin-top:12px;padding:15px;border:0;border-radius:12px;backg
 const TEST_TOKEN = 'ITESA-PRUEBA-QR-2026-OFICINA';
 const STORE = "itesa_test_moves";
 const COOLDOWN = 60000;
-let detector = null, busy = false, scanning = false;
+
+let busy = false;
+let scanning = false;
+let stream = null;
+
 const video = document.getElementById("video");
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d", { willReadFrequently: true });
 const msg = document.getElementById("msg");
 const diag = document.getElementById("diag");
 const btn = document.getElementById("activate");
@@ -57,24 +66,40 @@ const btn = document.getElementById("activate");
 function nowTime() {
   return new Intl.DateTimeFormat("es-MX", {
     timeZone: "America/Monterrey",
-    hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false
   }).format(new Date());
 }
+
 function today() {
-  const p = new Intl.DateTimeFormat("en-CA", {
-    timeZone:"America/Monterrey", year:"numeric", month:"2-digit", day:"2-digit"
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Monterrey",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
   }).format(new Date());
-  return p;
 }
+
 function getMoves() {
-  try { return JSON.parse(localStorage.getItem(STORE) || "[]"); } catch { return []; }
+  try { return JSON.parse(localStorage.getItem(STORE) || "[]"); }
+  catch { return []; }
 }
-function saveMoves(a) { localStorage.setItem(STORE, JSON.stringify(a)); }
+
+function saveMoves(a) {
+  localStorage.setItem(STORE, JSON.stringify(a));
+}
+
 function nextMove() {
-  const a = getMoves().filter(x => x.date === today()).sort((a,b)=>a.ts-b.ts);
+  const a = getMoves()
+    .filter(x => x.date === today())
+    .sort((a,b) => a.ts - b.ts);
+
   if (!a.length) return "ENTRADA";
-  return a[a.length-1].type === "SALIDA" ? "REGRESO" : "SALIDA";
+  return a[a.length - 1].type === "SALIDA" ? "REGRESO" : "SALIDA";
 }
+
 function show(kind, move, sub) {
   const r = document.getElementById("result");
   r.className = "result show " + kind;
@@ -82,54 +107,110 @@ function show(kind, move, sub) {
   document.getElementById("move").textContent = move;
   document.getElementById("time").textContent = nowTime();
   document.getElementById("sub").textContent = sub || "";
-  setTimeout(() => { r.className = "result"; busy = false; }, 2200);
+
+  setTimeout(() => {
+    r.className = "result";
+    busy = false;
+  }, 2200);
 }
+
 function handle(raw) {
   if (busy) return;
+
   raw = String(raw || "").trim();
+
   if (raw !== TEST_TOKEN) {
-    busy = true; show("bad","QR NO VÁLIDO","Usa el QR de prueba ITESA"); return;
+    busy = true;
+    show("bad", "QR NO VÁLIDO", "Usa el QR de prueba ITESA");
+    return;
   }
+
   const all = getMoves();
-  const last = [...all].sort((a,b)=>b.ts-a.ts)[0];
+  const last = [...all].sort((a,b) => b.ts - a.ts)[0];
   const now = Date.now();
+
   if (last && now - last.ts < COOLDOWN) {
-    busy = true; show("warn","REGISTRO YA REALIZADO","Espera 60 segundos"); return;
+    busy = true;
+    show("warn", "REGISTRO YA REALIZADO", "Espera 60 segundos");
+    return;
   }
+
   const type = nextMove();
-  all.push({date:today(), time:nowTime(), ts:now, type});
+  all.push({
+    date: today(),
+    time: nowTime(),
+    ts: now,
+    type
+  });
+
   saveMoves(all);
-  busy = true; show("ok",type,"✓ REGISTRO GUARDADO");
+  busy = true;
+  show("ok", type, "✓ REGISTRO GUARDADO");
 }
+
 async function start() {
   try {
     msg.textContent = "Solicitando cámara…";
-    if (!window.isSecureContext) throw new Error("Se requiere HTTPS");
-    if (!navigator.mediaDevices?.getUserMedia) throw new Error("getUserMedia no disponible");
-    const stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});
+
+    if (!window.isSecureContext)
+      throw new Error("Se requiere HTTPS");
+
+    if (!navigator.mediaDevices?.getUserMedia)
+      throw new Error("getUserMedia no disponible");
+
+    if (typeof window.jsQR !== "function")
+      throw new Error("No se pudo cargar el lector QR");
+
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: { ideal: "environment" },
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
+      },
+      audio: false
+    });
+
     video.srcObject = stream;
     await video.play();
+
     btn.style.display = "none";
-    if (!("BarcodeDetector" in window)) throw new Error("BarcodeDetector no disponible en este Chrome");
-    detector = new BarcodeDetector({formats:["qr_code"]});
     msg.textContent = "CÁMARA ACTIVA · MUESTRA EL QR";
+    diag.textContent = "Lector QR compatible activado.";
     scanning = true;
-    loop();
+    requestAnimationFrame(loop);
+
   } catch (e) {
     msg.textContent = "ERROR DE CÁMARA";
     diag.textContent = (e.name ? e.name + ": " : "") + e.message;
   }
 }
-async function loop() {
+
+function loop() {
   if (!scanning) return;
+
   try {
-    if (!busy && detector && video.readyState >= 2) {
-      const codes = await detector.detect(video);
-      if (codes?.length && codes[0].rawValue) handle(codes[0].rawValue);
+    if (!busy && video.readyState >= 2 && video.videoWidth && video.videoHeight) {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const code = window.jsQR(img.data, img.width, img.height, {
+        inversionAttempts: "attemptBoth"
+      });
+
+      if (code && code.data) {
+        handle(code.data);
+      }
     }
-  } catch(e) { console.warn(e); }
-  setTimeout(loop,250);
+  } catch (e) {
+    console.warn("QR scan error:", e);
+  }
+
+  setTimeout(() => requestAnimationFrame(loop), 180);
 }
+
 btn.addEventListener("click", start);
 </script>
 </body>
