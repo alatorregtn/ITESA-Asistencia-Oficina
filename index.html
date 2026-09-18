@@ -1,14 +1,136 @@
 <!doctype html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#0f172a" />
-    <link rel="manifest" href="/manifest.webmanifest" />
-    <title>Control de Asistencia ITESA</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ITESA Asistencia - Prueba</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#08131f;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
+.wrap{max-width:520px;margin:auto;min-height:100vh;padding:16px}
+h1{font-size:20px;margin:0 0 12px}
+.card{background:#0f1d2d;border:1px solid #1f3550;border-radius:18px;padding:14px}
+.cam{position:relative;aspect-ratio:3/4;background:#000;border-radius:16px;overflow:hidden}
+video{width:100%;height:100%;object-fit:cover}
+.frame{position:absolute;inset:22% 12%;border:3px solid #fff;border-radius:20px;box-shadow:0 0 0 9999px rgba(0,0,0,.25);pointer-events:none}
+.msg{position:absolute;left:12px;right:12px;bottom:12px;background:rgba(0,0,0,.65);padding:10px;border-radius:10px;text-align:center;font-size:13px}
+button{width:100%;margin-top:12px;padding:15px;border:0;border-radius:12px;background:#fff;color:#08131f;font-size:17px;font-weight:800}
+.small{font-size:12px;color:#aebfd1;margin-top:10px;line-height:1.4}
+.result{display:none;position:fixed;inset:0;z-index:50;align-items:center;justify-content:center;text-align:center;padding:24px}
+.result.show{display:flex} .ok{background:#0d884a} .warn{background:#9a6700} .bad{background:#a72b2b}
+.result h2{font-size:32px;margin:0 0 10px} .move{font-size:28px;font-weight:800} .time{font-size:42px;font-weight:900;margin:12px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>ITESA · PRUEBA DE ASISTENCIA</h1>
+<div class="card">
+  <div class="cam">
+    <video id="video" autoplay muted playsinline></video>
+    <div class="frame"></div>
+    <div id="msg" class="msg">Toca ACTIVAR CÁMARA</div>
+  </div>
+  <button id="activate">📷 ACTIVAR CÁMARA</button>
+  <div id="diag" class="small">Esta prueba solo valida cámara, lectura QR, secuencia y bloqueo de 60 segundos.</div>
+</div>
+</div>
+
+<div id="result" class="result">
+  <div>
+    <h2 id="name"></h2>
+    <div id="move" class="move"></div>
+    <div id="time" class="time"></div>
+    <div id="sub"></div>
+  </div>
+</div>
+
+<script>
+const TEST_TOKEN = 'ITESA-PRUEBA-QR-2026-OFICINA';
+const STORE = "itesa_test_moves";
+const COOLDOWN = 60000;
+let detector = null, busy = false, scanning = false;
+const video = document.getElementById("video");
+const msg = document.getElementById("msg");
+const diag = document.getElementById("diag");
+const btn = document.getElementById("activate");
+
+function nowTime() {
+  return new Intl.DateTimeFormat("es-MX", {
+    timeZone: "America/Monterrey",
+    hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false
+  }).format(new Date());
+}
+function today() {
+  const p = new Intl.DateTimeFormat("en-CA", {
+    timeZone:"America/Monterrey", year:"numeric", month:"2-digit", day:"2-digit"
+  }).format(new Date());
+  return p;
+}
+function getMoves() {
+  try { return JSON.parse(localStorage.getItem(STORE) || "[]"); } catch { return []; }
+}
+function saveMoves(a) { localStorage.setItem(STORE, JSON.stringify(a)); }
+function nextMove() {
+  const a = getMoves().filter(x => x.date === today()).sort((a,b)=>a.ts-b.ts);
+  if (!a.length) return "ENTRADA";
+  return a[a.length-1].type === "SALIDA" ? "REGRESO" : "SALIDA";
+}
+function show(kind, move, sub) {
+  const r = document.getElementById("result");
+  r.className = "result show " + kind;
+  document.getElementById("name").textContent = "PRUEBA ITESA";
+  document.getElementById("move").textContent = move;
+  document.getElementById("time").textContent = nowTime();
+  document.getElementById("sub").textContent = sub || "";
+  setTimeout(() => { r.className = "result"; busy = false; }, 2200);
+}
+function handle(raw) {
+  if (busy) return;
+  raw = String(raw || "").trim();
+  if (raw !== TEST_TOKEN) {
+    busy = true; show("bad","QR NO VÁLIDO","Usa el QR de prueba ITESA"); return;
+  }
+  const all = getMoves();
+  const last = [...all].sort((a,b)=>b.ts-a.ts)[0];
+  const now = Date.now();
+  if (last && now - last.ts < COOLDOWN) {
+    busy = true; show("warn","REGISTRO YA REALIZADO","Espera 60 segundos"); return;
+  }
+  const type = nextMove();
+  all.push({date:today(), time:nowTime(), ts:now, type});
+  saveMoves(all);
+  busy = true; show("ok",type,"✓ REGISTRO GUARDADO");
+}
+async function start() {
+  try {
+    msg.textContent = "Solicitando cámara…";
+    if (!window.isSecureContext) throw new Error("Se requiere HTTPS");
+    if (!navigator.mediaDevices?.getUserMedia) throw new Error("getUserMedia no disponible");
+    const stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});
+    video.srcObject = stream;
+    await video.play();
+    btn.style.display = "none";
+    if (!("BarcodeDetector" in window)) throw new Error("BarcodeDetector no disponible en este Chrome");
+    detector = new BarcodeDetector({formats:["qr_code"]});
+    msg.textContent = "CÁMARA ACTIVA · MUESTRA EL QR";
+    scanning = true;
+    loop();
+  } catch (e) {
+    msg.textContent = "ERROR DE CÁMARA";
+    diag.textContent = (e.name ? e.name + ": " : "") + e.message;
+  }
+}
+async function loop() {
+  if (!scanning) return;
+  try {
+    if (!busy && detector && video.readyState >= 2) {
+      const codes = await detector.detect(video);
+      if (codes?.length && codes[0].rawValue) handle(codes[0].rawValue);
+    }
+  } catch(e) { console.warn(e); }
+  setTimeout(loop,250);
+}
+btn.addEventListener("click", start);
+</script>
+</body>
 </html>
