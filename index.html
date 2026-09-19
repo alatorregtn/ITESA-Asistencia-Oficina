@@ -1,217 +1,82 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>ITESA Asistencia - Prueba QR</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ITESA · Asistencia Oficina</title>
 <style>
-*{box-sizing:border-box}
-body{margin:0;background:#08131f;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
-.wrap{max-width:520px;margin:auto;min-height:100vh;padding:16px}
-h1{font-size:20px;margin:0 0 12px}
-.card{background:#0f1d2d;border:1px solid #1f3550;border-radius:18px;padding:14px}
-.cam{position:relative;aspect-ratio:3/4;background:#000;border-radius:16px;overflow:hidden}
-video{width:100%;height:100%;object-fit:cover}
-.frame{position:absolute;inset:22% 12%;border:3px solid #fff;border-radius:20px;box-shadow:0 0 0 9999px rgba(0,0,0,.25);pointer-events:none}
+*{box-sizing:border-box}body{margin:0;background:#08131f;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
+.app{max-width:760px;margin:auto;min-height:100vh;padding:16px}.top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+.brand{font-weight:900}.net{font-size:12px;padding:6px 10px;background:#12253a;border-radius:999px}.tabs{display:flex;gap:8px;margin-bottom:12px}
+button{border:0;border-radius:12px;font-weight:800;cursor:pointer}.tab{padding:10px 14px;background:#12253a;color:#d7e4f3}.tab.active{background:#fff;color:#08131f}
+.card{background:#0f1d2d;border:1px solid #1f3550;border-radius:18px;padding:14px}.camera{position:relative;aspect-ratio:3/4;background:#000;border-radius:16px;overflow:hidden}
+video{width:100%;height:100%;object-fit:cover}.frame{position:absolute;inset:22% 11%;border:3px solid #fff;border-radius:22px;box-shadow:0 0 0 9999px rgba(0,0,0,.25);pointer-events:none}
 .msg{position:absolute;left:12px;right:12px;bottom:12px;background:rgba(0,0,0,.65);padding:10px;border-radius:10px;text-align:center;font-size:13px}
-button{width:100%;margin-top:12px;padding:15px;border:0;border-radius:12px;background:#fff;color:#08131f;font-size:17px;font-weight:800}
-.small{font-size:12px;color:#aebfd1;margin-top:10px;line-height:1.4}
-.result{display:none;position:fixed;inset:0;z-index:50;align-items:center;justify-content:center;text-align:center;padding:24px}
-.result.show{display:flex} .ok{background:#0d884a} .warn{background:#9a6700} .bad{background:#a72b2b}
-.result h2{font-size:32px;margin:0 0 10px} .move{font-size:28px;font-weight:800} .time{font-size:42px;font-weight:900;margin:12px 0}
-canvas{display:none}
+.activate{width:100%;margin-top:12px;padding:15px;background:#fff;color:#08131f;font-size:17px}.hint,.small{color:#aebfd1;font-size:12px;line-height:1.4}
+.result{display:none;position:fixed;inset:0;z-index:50;align-items:center;justify-content:center;text-align:center;padding:24px}.result.show{display:flex}.ok{background:#0d884a}.warn{background:#9a6700}.bad{background:#a72b2b}
+.result h1{font-size:30px;margin:0 0 8px}.result h2{font-size:28px;margin:0}.time{font-size:42px;font-weight:900;margin:12px 0}.sub{white-space:pre-line;font-size:17px}
+.metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}.metric{background:#12253a;border-radius:14px;padding:13px}.metric b{display:block;font-size:25px}
+table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:9px 5px;border-bottom:1px solid #1f3550;text-align:left;vertical-align:top}th{color:#9fb2c7;font-size:10px;text-transform:uppercase}
+.pill{display:inline-block;padding:4px 7px;border-radius:999px;background:#173450}.alert{padding:9px 10px;border-radius:10px;background:#493b0d;color:#ffe59a;margin-bottom:8px;font-size:13px}
+.hidden{display:none!important}canvas{display:none}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 </head>
 <body>
-<div class="wrap">
-<h1>ITESA · PRUEBA DE ASISTENCIA</h1>
-<div class="card">
-  <div class="cam">
-    <video id="video" autoplay muted playsinline></video>
-    <canvas id="canvas"></canvas>
-    <div class="frame"></div>
-    <div id="msg" class="msg">Toca ACTIVAR CÁMARA</div>
-  </div>
-  <button id="activate">📷 ACTIVAR CÁMARA</button>
-  <div id="diag" class="small">Prueba de cámara + lectura QR + bloqueo de 60 segundos.</div>
+<div class="app">
+<div class="top"><div class="brand">ITESA · ASISTENCIA OFICINA</div><div id="net" class="net"></div></div>
+<div class="tabs"><button id="tk" class="tab active">KIOSCO</button><button id="ta" class="tab">CONTROL</button></div>
+<section id="kiosk"><div class="card">
+<div class="camera"><video id="video" autoplay muted playsinline></video><canvas id="canvas"></canvas><div class="frame"></div><div id="msg" class="msg">Toca ACTIVAR CÁMARA</div></div>
+<button id="activate" class="activate">📷 ACTIVAR CÁMARA</button><p class="hint">Muestra el QR dentro del recuadro. El sistema determina automáticamente Entrada / Salida / Regreso.</p><div id="diag" class="small"></div>
+</div></section>
+<section id="admin" class="hidden">
+<div class="metrics"><div class="metric">Registros hoy<b id="mReg">0</b></div><div class="metric">Dentro ahora<b id="mIn">0</b></div><div class="metric">Personal V1<b>10</b></div><div class="metric">Alertas<b id="mAlert">0</b></div></div>
+<div class="card"><h3 style="margin-top:0">Resumen de hoy</h3><div id="alerts"></div><div style="overflow:auto"><table><thead><tr><th>Empleado</th><th>Entrada</th><th>Comida</th><th>Último</th><th>Estado</th></tr></thead><tbody id="summary"></tbody></table></div></div>
+</section>
 </div>
-</div>
-
-<div id="result" class="result">
-  <div>
-    <h2 id="name"></h2>
-    <div id="move" class="move"></div>
-    <div id="time" class="time"></div>
-    <div id="sub"></div>
-  </div>
-</div>
+<div id="result" class="result"><div><h1 id="rName"></h1><h2 id="rMove"></h2><div id="rTime" class="time"></div><div id="rSub" class="sub"></div></div></div>
 
 <script>
-const TEST_TOKEN = 'ITESA-PRUEBA-QR-2026-OFICINA';
-const STORE = "itesa_test_moves";
-const COOLDOWN = 60000;
+const EMPLOYEES=[{"id": "OF-001", "name": "BALAREZO/SUAREZ, LORENA", "area": "VENTAS", "entry": "08:00", "tolerance": 10, "exit": "17:30", "lunchEligible": true, "lunchMinutes": 60, "token": "ITESA-0a2f47eb-40e6-425a-a969-d44b09c04142", "active": true}, {"id": "OF-002", "name": "CHAVEZ/DOMINGUEZ, SANJUANA", "area": "LIMPIEZA", "entry": "08:00", "tolerance": 10, "exit": "15:00", "lunchEligible": false, "lunchMinutes": 0, "token": "ITESA-5444eebe-62c2-4dbe-95c0-c675670fe0fe", "active": true}, {"id": "OF-003", "name": "DELGADO/AGUILAR, JESUS", "area": "VENTAS", "entry": "08:00", "tolerance": 10, "exit": "17:30", "lunchEligible": true, "lunchMinutes": 60, "token": "ITESA-ebe55de9-9d25-42e6-81ed-86d79542f003", "active": true}, {"id": "OF-004", "name": "GARCIA/MORENO, JUAN ANGEL", "area": "VENTAS", "entry": "08:00", "tolerance": 10, "exit": "17:30", "lunchEligible": true, "lunchMinutes": 60, "token": "ITESA-3839fdc1-7741-4b28-918f-fca0d34451ec", "active": true}, {"id": "OF-005", "name": "MORALES/HERNANDEZ, ERIKA SARAHI", "area": "VENTAS", "entry": "08:00", "tolerance": 10, "exit": "17:30", "lunchEligible": true, "lunchMinutes": 60, "token": "ITESA-894a2273-cf5b-4e77-b4c5-f885b2646f78", "active": true}, {"id": "OF-006", "name": "MORALES/LARA, ROCIO ISABEL", "area": "AUX CONTABLE", "entry": "08:00", "tolerance": 10, "exit": "17:30", "lunchEligible": true, "lunchMinutes": 60, "token": "ITESA-d6b19da7-0096-4315-a0c6-faa53623d35d", "active": true}, {"id": "OF-007", "name": "OYARZABAL/VARELA, JESUS MANUEL", "area": "VENTAS", "entry": "08:00", "tolerance": 10, "exit": "17:30", "lunchEligible": true, "lunchMinutes": 60, "token": "ITESA-e4c29170-a077-4d42-87de-15dc7b5bde71", "active": true}, {"id": "OF-008", "name": "RANGEL/CARDONA, LUIS ALBERTO", "area": "VENTAS", "entry": "08:00", "tolerance": 10, "exit": "17:30", "lunchEligible": true, "lunchMinutes": 60, "token": "ITESA-6a178579-4f33-4a0c-8f5e-f381be480f53", "active": true}, {"id": "OF-009", "name": "SANTACRUZ/AYALA, GRACIELA", "area": "AUX CONTABLE", "entry": "08:00", "tolerance": 10, "exit": "17:30", "lunchEligible": true, "lunchMinutes": 60, "token": "ITESA-07512f70-5699-4985-be1c-24e601e205b2", "active": true}, {"id": "OF-010", "name": "VELEZ/HERNANDEZ, OCTAVIO ADOLFO", "area": "VENTAS", "entry": "08:00", "tolerance": 10, "exit": "17:30", "lunchEligible": true, "lunchMinutes": 60, "token": "ITESA-4253d22c-fac1-42d2-979d-8e3d2cdb54a5", "active": true}];
+const TZ="America/Monterrey",STORE="itesa_oficina_real_v1",COOLDOWN=60000;
+const $=x=>document.getElementById(x),video=$("video"),canvas=$("canvas"),ctx=canvas.getContext("2d",{willReadFrequently:true});
+let busy=false,scanning=false,stream=null;
 
-let busy = false;
-let scanning = false;
-let stream = null;
+function fmtParts(d=new Date()){const p=new Intl.DateTimeFormat("en-US",{timeZone:TZ,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).formatToParts(d),o={};for(const x of p)if(x.type!=="literal")o[x.type]=x.value;return o}
+function dateNow(){let p=fmtParts();return `${p.year}-${p.month}-${p.day}`}function timeNow(){let p=fmtParts();return `${p.hour}:${p.minute}:${p.second}`}
+function mins(t){let [h,m]=t.split(":").map(Number);return h*60+m}function all(){try{return JSON.parse(localStorage.getItem(STORE)||"[]")}catch{return[]}}function save(a){localStorage.setItem(STORE,JSON.stringify(a))}
+function empToken(t){return EMPLOYEES.find(e=>e.token===t&&e.active)}function day(eid){return all().filter(x=>x.empId===eid&&x.date===dateNow()).sort((a,b)=>a.ts-b.ts)}
+function next(eid){let a=day(eid);if(!a.length)return"ENTRADA";return a[a.length-1].type==="SALIDA"?"REGRESO":"SALIDA"}
+function pattern(eid){let a=all().filter(x=>x.empId===eid&&x.type==="ENTRADA").sort((a,b)=>b.ts-a.ts),seen=new Set(),d=[];for(const x of a){if(!seen.has(x.date)){seen.add(x.date);d.push(x);if(d.length===5)break}}return{total:d.length,late:d.filter(x=>mins(x.time)>480).length}}
+function pop(kind,e,m,t,note){$("result").className=`result show ${kind}`;$("rName").textContent=e;$("rMove").textContent=m;$("rTime").textContent=t;$("rSub").textContent=note;setTimeout(()=>{$("result").className="result";busy=false},2500)}
 
-const video = document.getElementById("video");
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d", { willReadFrequently: true });
-const msg = document.getElementById("msg");
-const diag = document.getElementById("diag");
-const btn = document.getElementById("activate");
-
-function nowTime() {
-  return new Intl.DateTimeFormat("es-MX", {
-    timeZone: "America/Monterrey",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false
-  }).format(new Date());
+function handle(raw){
+ if(busy)return;let e=empToken(String(raw||"").trim());if(!e){busy=true;pop("bad","QR NO VÁLIDO","",timeNow(),"Contacta a administración");return}
+ let a=all(),now=Date.now(),last=a.filter(x=>x.empId===e.id).sort((x,y)=>y.ts-x.ts)[0];if(last&&now-last.ts<COOLDOWN){busy=true;pop("warn",e.name,"REGISTRO YA REALIZADO",last.time,"Espera 60 segundos");return}
+ let type=next(e.id),t=timeNow(),note="";
+ if(type==="ENTRADA"){let d=mins(t)-480;if(d>10)note=`RETARDO: ${d-10} min fuera de tolerancia`;else if(d>0)note=`Dentro de tolerancia · llegada ${d} min después de las 8:00`}
+ if(type==="REGRESO"&&e.lunchEligible){let dm=day(e.id),out=[...dm].reverse().find(x=>x.type==="SALIDA");if(out){let dep=mins(out.time),dur=Math.round((now-out.ts)/60000);if(dep>=720&&dep<=960)note=dur>60?`COMIDA ${dur} min · EXCESO ${dur-60} min`:`COMIDA ${dur} min`}}
+ let rec={empId:e.id,name:e.name,area:e.area,date:dateNow(),time:t,ts:now,type,note};a.push(rec);save(a);
+ if(type==="ENTRADA"){let p=pattern(e.id);if(p.total>=4&&p.late>=4)note+=(note?"\n":"")+`AVISO: has llegado después de las 8:00 en ${p.late} de tus últimos ${p.total} días. Recuerda que la entrada es 8:00 AM.`}
+ busy=true;pop(note.includes("RETARDO")||note.includes("EXCESO")||note.includes("AVISO")?"warn":"ok",e.name,type,t,note||"✓ REGISTRO GUARDADO");render()
 }
 
-function today() {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: "America/Monterrey",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit"
-  }).format(new Date());
+async function start(){
+ try{$("msg").textContent="Solicitando cámara…";if(!window.isSecureContext)throw new Error("Se requiere HTTPS");if(!navigator.mediaDevices?.getUserMedia)throw new Error("Cámara no disponible");if(typeof window.jsQR!=="function")throw new Error("Lector QR no cargó");
+ stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:1280},height:{ideal:720}},audio:false});video.srcObject=stream;await video.play();$("activate").style.display="none";$("msg").textContent="CÁMARA ACTIVA · MUESTRA EL QR";scanning=true;requestAnimationFrame(loop)}
+ catch(e){$("msg").textContent="ERROR DE CÁMARA";$("diag").textContent=(e.name?e.name+": ":"")+e.message}
 }
+function loop(){if(!scanning)return;try{if(!busy&&video.readyState>=2&&video.videoWidth){canvas.width=video.videoWidth;canvas.height=video.videoHeight;ctx.drawImage(video,0,0,canvas.width,canvas.height);let im=ctx.getImageData(0,0,canvas.width,canvas.height),c=window.jsQR(im.data,im.width,im.height,{inversionAttempts:"attemptBoth"});if(c?.data)handle(c.data)}}catch(e){console.warn(e)}setTimeout(()=>requestAnimationFrame(loop),180)}
 
-function getMoves() {
-  try { return JSON.parse(localStorage.getItem(STORE) || "[]"); }
-  catch { return []; }
+function render(){
+ let today=all().filter(x=>x.date===dateNow()).sort((a,b)=>a.ts-b.ts),rows=[],alerts=[],inside=0;$("mReg").textContent=today.length;
+ for(const e of EMPLOYEES){let a=today.filter(x=>x.empId===e.id),entry=a.find(x=>x.type==="ENTRADA"),last=a[a.length-1];if(last&&(last.type==="ENTRADA"||last.type==="REGRESO"))inside++;
+ let lunch=e.lunchEligible?"—":"NO APLICA";if(e.lunchEligible){for(let i=0;i<a.length-1;i++){if(a[i].type==="SALIDA"&&a[i+1].type==="REGRESO"&&mins(a[i].time)>=720&&mins(a[i].time)<=960){let d=Math.round((a[i+1].ts-a[i].ts)/60000);lunch=`${a[i].time.slice(0,5)}–${a[i+1].time.slice(0,5)} (${d}m)`;if(d>60)alerts.push(`${e.name}: exceso de comida ${d-60} min`);break}}}
+ if(entry){let d=mins(entry.time)-480;if(d>10)alerts.push(`${e.name}: retardo ${d-10} min`)}let p=pattern(e.id);if(p.total>=4&&p.late>=4)alerts.push(`${e.name}: patrón de llegada después de 8:00 (${p.late}/${p.total})`);
+ let status=!last?"SIN REGISTRO":last.type==="SALIDA"?"FUERA":"EN OFICINA";rows.push(`<tr><td>${e.name}<br><span class="small">${e.area}</span></td><td>${entry?entry.time.slice(0,5):"—"}</td><td>${lunch}</td><td>${last?last.time.slice(0,5)+" "+last.type:"—"}</td><td><span class="pill">${status}</span></td></tr>`)}
+ $("mIn").textContent=inside;$("mAlert").textContent=alerts.length;$("summary").innerHTML=rows.join("");$("alerts").innerHTML=alerts.map(x=>`<div class="alert">${x}</div>`).join("")
 }
-
-function saveMoves(a) {
-  localStorage.setItem(STORE, JSON.stringify(a));
-}
-
-function nextMove() {
-  const a = getMoves()
-    .filter(x => x.date === today())
-    .sort((a,b) => a.ts - b.ts);
-
-  if (!a.length) return "ENTRADA";
-  return a[a.length - 1].type === "SALIDA" ? "REGRESO" : "SALIDA";
-}
-
-function show(kind, move, sub) {
-  const r = document.getElementById("result");
-  r.className = "result show " + kind;
-  document.getElementById("name").textContent = "PRUEBA ITESA";
-  document.getElementById("move").textContent = move;
-  document.getElementById("time").textContent = nowTime();
-  document.getElementById("sub").textContent = sub || "";
-
-  setTimeout(() => {
-    r.className = "result";
-    busy = false;
-  }, 2200);
-}
-
-function handle(raw) {
-  if (busy) return;
-
-  raw = String(raw || "").trim();
-
-  if (raw !== TEST_TOKEN) {
-    busy = true;
-    show("bad", "QR NO VÁLIDO", "Usa el QR de prueba ITESA");
-    return;
-  }
-
-  const all = getMoves();
-  const last = [...all].sort((a,b) => b.ts - a.ts)[0];
-  const now = Date.now();
-
-  if (last && now - last.ts < COOLDOWN) {
-    busy = true;
-    show("warn", "REGISTRO YA REALIZADO", "Espera 60 segundos");
-    return;
-  }
-
-  const type = nextMove();
-  all.push({
-    date: today(),
-    time: nowTime(),
-    ts: now,
-    type
-  });
-
-  saveMoves(all);
-  busy = true;
-  show("ok", type, "✓ REGISTRO GUARDADO");
-}
-
-async function start() {
-  try {
-    msg.textContent = "Solicitando cámara…";
-
-    if (!window.isSecureContext)
-      throw new Error("Se requiere HTTPS");
-
-    if (!navigator.mediaDevices?.getUserMedia)
-      throw new Error("getUserMedia no disponible");
-
-    if (typeof window.jsQR !== "function")
-      throw new Error("No se pudo cargar el lector QR");
-
-    stream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: { ideal: "environment" },
-        width: { ideal: 1280 },
-        height: { ideal: 720 }
-      },
-      audio: false
-    });
-
-    video.srcObject = stream;
-    await video.play();
-
-    btn.style.display = "none";
-    msg.textContent = "CÁMARA ACTIVA · MUESTRA EL QR";
-    diag.textContent = "Lector QR compatible activado.";
-    scanning = true;
-    requestAnimationFrame(loop);
-
-  } catch (e) {
-    msg.textContent = "ERROR DE CÁMARA";
-    diag.textContent = (e.name ? e.name + ": " : "") + e.message;
-  }
-}
-
-function loop() {
-  if (!scanning) return;
-
-  try {
-    if (!busy && video.readyState >= 2 && video.videoWidth && video.videoHeight) {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-      const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const code = window.jsQR(img.data, img.width, img.height, {
-        inversionAttempts: "attemptBoth"
-      });
-
-      if (code && code.data) {
-        handle(code.data);
-      }
-    }
-  } catch (e) {
-    console.warn("QR scan error:", e);
-  }
-
-  setTimeout(() => requestAnimationFrame(loop), 180);
-}
-
-btn.addEventListener("click", start);
-</script>
-</body>
-</html>
+function net(){$("net").textContent=navigator.onLine?"● EN LÍNEA":"● SIN INTERNET"}
+$("activate").onclick=start;$("tk").onclick=()=>{$("kiosk").classList.remove("hidden");$("admin").classList.add("hidden");$("tk").classList.add("active");$("ta").classList.remove("active")};$("ta").onclick=()=>{$("admin").classList.remove("hidden");$("kiosk").classList.add("hidden");$("ta").classList.add("active");$("tk").classList.remove("active");render()};
+window.addEventListener("online",net);window.addEventListener("offline",net);net();render();
+</script></body></html>
