@@ -43,36 +43,198 @@ table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:9px 5px;b
 <div class="actions">
 <button id="clearTests" class="danger">BORRAR REGISTROS DE PRUEBA</button>
 </div>
-<p class="small">El borrado elimina únicamente los registros guardados en este kiosco. No modifica los QR ni los empleados.</p>
+<p class="small">El borrado elimina únicamente los registros guardados en este kiosco. No modifica los QR ni los empleados. Los QR se validan por hash y no están expuestos en el código público.</p>
 </div>
 </section>
 </div>
 <div id="result" class="result"><div><h1 id="rName"></h1><h2 id="rMove"></h2><div id="rTime" class="time"></div><div id="rSub" class="sub"></div></div></div>
 
 <script>
-const EMPLOYEES=[{"id": "OF-001", "name": "BALAREZO/SUAREZ, LORENA", "area": "VENTAS", "entry": "08:00", "tolerance": 10, "exit": "17:30", "lunchEligible": true, "lunchMinutes": 60, "token": "ITESA-0a2f47eb-40e6-425a-a969-d44b09c04142", "active": true}, {"id": "OF-002", "name": "CHAVEZ/DOMINGUEZ, SANJUANA", "area": "LIMPIEZA", "entry": "08:00", "tolerance": 10, "exit": "15:00", "lunchEligible": false, "lunchMinutes": 0, "token": "ITESA-5444eebe-62c2-4dbe-95c0-c675670fe0fe", "active": true}, {"id": "OF-003", "name": "DELGADO/AGUILAR, JESUS", "area": "VENTAS", "entry": "08:00", "tolerance": 10, "exit": "17:30", "lunchEligible": true, "lunchMinutes": 60, "token": "ITESA-ebe55de9-9d25-42e6-81ed-86d79542f003", "active": true}, {"id": "OF-004", "name": "GARCIA/MORENO, JUAN ANGEL", "area": "VENTAS", "entry": "08:00", "tolerance": 10, "exit": "17:30", "lunchEligible": true, "lunchMinutes": 60, "token": "ITESA-3839fdc1-7741-4b28-918f-fca0d34451ec", "active": true}, {"id": "OF-005", "name": "MORALES/HERNANDEZ, ERIKA SARAHI", "area": "VENTAS", "entry": "08:00", "tolerance": 10, "exit": "17:30", "lunchEligible": true, "lunchMinutes": 60, "token": "ITESA-894a2273-cf5b-4e77-b4c5-f885b2646f78", "active": true}, {"id": "OF-006", "name": "MORALES/LARA, ROCIO ISABEL", "area": "AUX CONTABLE", "entry": "08:00", "tolerance": 10, "exit": "17:30", "lunchEligible": true, "lunchMinutes": 60, "token": "ITESA-d6b19da7-0096-4315-a0c6-faa53623d35d", "active": true}, {"id": "OF-007", "name": "OYARZABAL/VARELA, JESUS MANUEL", "area": "VENTAS", "entry": "08:00", "tolerance": 10, "exit": "17:30", "lunchEligible": true, "lunchMinutes": 60, "token": "ITESA-e4c29170-a077-4d42-87de-15dc7b5bde71", "active": true}, {"id": "OF-008", "name": "RANGEL/CARDONA, LUIS ALBERTO", "area": "VENTAS", "entry": "08:00", "tolerance": 10, "exit": "17:30", "lunchEligible": true, "lunchMinutes": 60, "token": "ITESA-6a178579-4f33-4a0c-8f5e-f381be480f53", "active": true}, {"id": "OF-009", "name": "SANTACRUZ/AYALA, GRACIELA", "area": "AUX CONTABLE", "entry": "08:00", "tolerance": 10, "exit": "17:30", "lunchEligible": true, "lunchMinutes": 60, "token": "ITESA-07512f70-5699-4985-be1c-24e601e205b2", "active": true}, {"id": "OF-010", "name": "VELEZ/HERNANDEZ, OCTAVIO ADOLFO", "area": "VENTAS", "entry": "08:00", "tolerance": 10, "exit": "17:30", "lunchEligible": true, "lunchMinutes": 60, "token": "ITESA-4253d22c-fac1-42d2-979d-8e3d2cdb54a5", "active": true}];
+const EMPLOYEES=[{"id":"OF-001","name":"BALAREZO/SUAREZ, LORENA","area":"VENTAS","entry":"08:00","tolerance":10,"exit":"17:30","lunchEligible":true,"lunchMinutes":60,"active":true,"hash":"c5f2c144509be5e38473806495c21767fba28dfff3661b1607b5d5d135055218"},{"id":"OF-002","name":"CHAVEZ/DOMINGUEZ, SANJUANA","area":"LIMPIEZA","entry":"08:00","tolerance":10,"exit":"15:00","lunchEligible":false,"lunchMinutes":0,"active":true,"hash":"1b89dc2b7adec4b267880d378b979e4e011438de9bbdc84384b7f06b659d9e10"},{"id":"OF-003","name":"DELGADO/AGUILAR, JESUS","area":"VENTAS","entry":"08:00","tolerance":10,"exit":"17:30","lunchEligible":true,"lunchMinutes":60,"active":true,"hash":"3c5d92ba5622d13a5cbd237d3231abe2bf75f161445e1545978beb45a607faea"},{"id":"OF-004","name":"GARCIA/MORENO, JUAN ANGEL","area":"VENTAS","entry":"08:00","tolerance":10,"exit":"17:30","lunchEligible":true,"lunchMinutes":60,"active":true,"hash":"446b29376da21d0c1d03777894b6eab1693820b6b63e86e1ccc352e272ae1df5"},{"id":"OF-005","name":"MORALES/HERNANDEZ, ERIKA SARAHI","area":"VENTAS","entry":"08:00","tolerance":10,"exit":"17:30","lunchEligible":true,"lunchMinutes":60,"active":true,"hash":"a037cf4a8e3b1d1ccb175514f57a449d5aa3e754afb764cb142ed57b704959c0"},{"id":"OF-006","name":"MORALES/LARA, ROCIO ISABEL","area":"AUX CONTABLE","entry":"08:00","tolerance":10,"exit":"17:30","lunchEligible":true,"lunchMinutes":60,"active":true,"hash":"da2013932409ac0c4d3d7998ef5b1c4eed3a71d84f8d3d1351b93613900641c2"},{"id":"OF-007","name":"OYARZABAL/VARELA, JESUS MANUEL","area":"VENTAS","entry":"08:00","tolerance":10,"exit":"17:30","lunchEligible":true,"lunchMinutes":60,"active":true,"hash":"3a0fbcb6525acbeb55effd1c5d8ac18e949be424e9c2c84eb77604180fd32ead"},{"id":"OF-008","name":"RANGEL/CARDONA, LUIS ALBERTO","area":"VENTAS","entry":"08:00","tolerance":10,"exit":"17:30","lunchEligible":true,"lunchMinutes":60,"active":true,"hash":"989cf226f4aa7ddfdc2d435af2aa8d0987f6b011935d0c279bc4980722d8f7a9"},{"id":"OF-009","name":"SANTACRUZ/AYALA, GRACIELA","area":"AUX CONTABLE","entry":"08:00","tolerance":10,"exit":"17:30","lunchEligible":true,"lunchMinutes":60,"active":true,"hash":"aae8401ddf0a2a4febc3bf03d59391b4694ec85d72c3681c65140671ea608e99"},{"id":"OF-010","name":"VELEZ/HERNANDEZ, OCTAVIO ADOLFO","area":"VENTAS","entry":"08:00","tolerance":10,"exit":"17:30","lunchEligible":true,"lunchMinutes":60,"active":true,"hash":"25869f26f292757d5f153975ba889cc35e367a2a2ba7162e3aa2c38c397ef96c"}];
 const TZ="America/Monterrey",STORE="itesa_oficina_real_v1",COOLDOWN=60000;
+const WEB_APP_URL="https://script.google.com/macros/s/AKfycbz4ErGwtHBJkL0alabIadO3tuu3wO5CN9r9Nyh3wNQc14yxpmAu7j03dyJccgqowhjDkA/exec";
+let syncRunning=false;
 const $=x=>document.getElementById(x),video=$("video"),canvas=$("canvas"),ctx=canvas.getContext("2d",{willReadFrequently:true});
 let busy=false,scanning=false,stream=null;
 
 function fmtParts(d=new Date()){const p=new Intl.DateTimeFormat("en-US",{timeZone:TZ,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).formatToParts(d),o={};for(const x of p)if(x.type!=="literal")o[x.type]=x.value;return o}
 function dateNow(){let p=fmtParts();return `${p.year}-${p.month}-${p.day}`}function timeNow(){let p=fmtParts();return `${p.hour}:${p.minute}:${p.second}`}
 function mins(t){let [h,m]=t.split(":").map(Number);return h*60+m}function all(){try{return JSON.parse(localStorage.getItem(STORE)||"[]")}catch{return[]}}function save(a){localStorage.setItem(STORE,JSON.stringify(a))}
-function empToken(t){return EMPLOYEES.find(e=>e.token===t&&e.active)}function day(eid){return all().filter(x=>x.empId===eid&&x.date===dateNow()).sort((a,b)=>a.ts-b.ts)}
+async function sha256Hex(value){
+ const data=new TextEncoder().encode(value);
+ const digest=await crypto.subtle.digest("SHA-256",data);
+ return Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+async function empToken(t){
+ const h=await sha256Hex(String(t||"").trim());
+ return EMPLOYEES.find(e=>e.hash===h&&e.active);
+}function day(eid){return all().filter(x=>x.empId===eid&&x.date===dateNow()).sort((a,b)=>a.ts-b.ts)}
 function next(eid){let a=day(eid);if(!a.length)return"ENTRADA";return a[a.length-1].type==="SALIDA"?"REGRESO":"SALIDA"}
 function pattern(eid){let a=all().filter(x=>x.empId===eid&&x.type==="ENTRADA").sort((a,b)=>b.ts-a.ts),seen=new Set(),d=[];for(const x of a){if(!seen.has(x.date)){seen.add(x.date);d.push(x);if(d.length===5)break}}return{total:d.length,late:d.filter(x=>mins(x.time)>480).length}}
 function pop(kind,e,m,t,note){$("result").className=`result show ${kind}`;$("rName").textContent=e;$("rMove").textContent=m;$("rTime").textContent=t;$("rSub").textContent=note;setTimeout(()=>{$("result").className="result";busy=false},2500)}
 
-function handle(raw){
- if(busy)return;let e=empToken(String(raw||"").trim());if(!e){busy=true;pop("bad","QR NO VÁLIDO","",timeNow(),"Contacta a administración");return}
- let a=all(),now=Date.now(),last=a.filter(x=>x.empId===e.id).sort((x,y)=>y.ts-x.ts)[0];if(last&&now-last.ts<COOLDOWN){busy=true;pop("warn",e.name,"REGISTRO YA REALIZADO",last.time,"Espera 60 segundos");return}
- let type=next(e.id),t=timeNow(),note="";
- if(type==="ENTRADA"){let d=mins(t)-480;if(d>10)note=`RETARDO: ${d-10} min fuera de tolerancia`;else if(d>0)note=`Dentro de tolerancia · llegada ${d} min después de las 8:00`}
- if(type==="REGRESO"&&e.lunchEligible){let dm=day(e.id),out=[...dm].reverse().find(x=>x.type==="SALIDA");if(out){let dep=mins(out.time),dur=Math.round((now-out.ts)/60000);if(dep>=720&&dep<=960)note=dur>60?`COMIDA ${dur} min · EXCESO ${dur-60} min`:`COMIDA ${dur} min`}}
- let rec={empId:e.id,name:e.name,area:e.area,date:dateNow(),time:t,ts:now,type,note};a.push(rec);save(a);
- if(type==="ENTRADA"){let p=pattern(e.id);if(p.total>=4&&p.late>=4)note+=(note?"\n":"")+`AVISO: has llegado después de las 8:00 en ${p.late} de tus últimos ${p.total} días. Recuerda que la entrada es 8:00 AM.`}
- busy=true;pop(note.includes("RETARDO")||note.includes("EXCESO")||note.includes("AVISO")?"warn":"ok",e.name,type,t,note||"✓ REGISTRO GUARDADO");render()
+async function handle(raw){
+ if(busy)return;
+ busy=true;
+ try{
+   const rawToken=String(raw||"").trim();
+   let e=await empToken(rawToken);
+
+   if(!e){
+     pop("bad","QR NO VÁLIDO","",timeNow(),"Contacta a administración");
+     return;
+   }
+
+   let a=all(),now=Date.now(),last=a.filter(x=>x.empId===e.id).sort((x,y)=>y.ts-x.ts)[0];
+
+   if(last&&now-last.ts<COOLDOWN){
+     pop("warn",e.name,"REGISTRO YA REALIZADO",last.time,"Espera 60 segundos");
+     return;
+   }
+
+   let type=next(e.id),t=timeNow(),note="";
+
+   if(type==="ENTRADA"){
+     let d=mins(t)-480;
+     if(d>10) note=`RETARDO: ${d-10} min fuera de tolerancia`;
+     else if(d>0) note=`Dentro de tolerancia · llegada ${d} min después de las 8:00`;
+   }
+
+   if(type==="REGRESO"&&e.lunchEligible){
+     let dm=day(e.id),out=[...dm].reverse().find(x=>x.type==="SALIDA");
+     if(out){
+       let dep=mins(out.time),dur=Math.round((now-out.ts)/60000);
+       // Comida flexible: salida aproximadamente entre 12:30 y 15:30.
+       if(dep>=750&&dep<=930){
+         note=dur>60?`COMIDA ${dur} min · EXCESO ${dur-60} min`:`COMIDA ${dur} min`;
+       }
+     }
+   }
+
+   const eventId=(crypto.randomUUID?crypto.randomUUID():`${now}-${Math.random().toString(16).slice(2)}`);
+   let rec={
+     id:eventId,
+     empId:e.id,
+     name:e.name,
+     area:e.area,
+     date:dateNow(),
+     time:t,
+     ts:now,
+     type,
+     note,
+     sync:"PENDIENTE",
+     syncToken:rawToken,
+     lastSyncTry:0
+   };
+
+   a.push(rec);
+   save(a);
+
+   if(type==="ENTRADA"){
+     let p=pattern(e.id);
+     if(p.total>=4&&p.late>=4){
+       note+=(note?"\n":"")+`AVISO: has llegado después de las 8:00 en ${p.late} de tus últimos ${p.total} días. Recuerda que la entrada es 8:00 AM.`;
+       rec.note=note;
+       save(a);
+     }
+   }
+
+   pop(
+     note.includes("RETARDO")||note.includes("EXCESO")||note.includes("AVISO")?"warn":"ok",
+     e.name,type,t,note||"✓ REGISTRO GUARDADO"
+   );
+
+   render();
+   syncPending();
+
+ }catch(err){
+   console.error(err);
+   pop("bad","ERROR DE REGISTRO","",timeNow(),"No se pudo validar el QR. Intenta de nuevo.");
+ }
 }
+
+function setSyncStatus(){
+ const records=all();
+ const pending=records.filter(x=>x.sync==="PENDIENTE").length;
+ const sent=records.filter(x=>x.sync==="ENVIADO").length;
+ let central="CENTRAL OK";
+ if(pending>0) central=`CENTRAL ${pending} PEND`;
+ else if(sent>0) central="CENTRAL ENVIADO";
+ $("net").textContent=(navigator.onLine?"● EN LÍNEA":"● SIN INTERNET")+" · "+central;
+}
+
+async function postMovement(rec){
+ const payload={
+   eventId:rec.id,
+   token:rec.syncToken,
+   capturedAt:rec.ts,
+   type:rec.type,
+   note:rec.note||"",
+   origin:"KIOSCO OFICINA"
+ };
+
+ // Primer intento: respuesta verificable.
+ try{
+   const r=await fetch(WEB_APP_URL,{
+     method:"POST",
+     redirect:"follow",
+     credentials:"omit",
+     headers:{"Content-Type":"text/plain;charset=utf-8"},
+     body:JSON.stringify(payload)
+   });
+   const txt=await r.text();
+   const data=JSON.parse(txt);
+   if(data&&data.ok){
+     return "CONFIRMADO";
+   }
+ }catch(e){
+   console.warn("Sin confirmación CORS, usando envío compatible.",e);
+ }
+
+ // Respaldo compatible con Apps Script en navegadores que bloqueen leer la respuesta.
+ // El servidor evita duplicados por EVENTO_ID.
+ try{
+   await fetch(WEB_APP_URL,{
+     method:"POST",
+     mode:"no-cors",
+     credentials:"omit",
+     headers:{"Content-Type":"text/plain;charset=utf-8"},
+     body:JSON.stringify(payload)
+   });
+   return "ENVIADO";
+ }catch(e){
+   console.warn("No se pudo enviar al central.",e);
+   return "PENDIENTE";
+ }
+}
+
+async function syncPending(){
+ if(syncRunning||!navigator.onLine)return;
+ syncRunning=true;
+ try{
+   let records=all(),changed=false,now=Date.now();
+   for(const rec of records){
+     if(!rec.syncToken)continue;
+     if(rec.sync==="CONFIRMADO")continue;
+
+     // Reintentar PENDIENTES inmediatamente. Los ENVIADOS se revalidan cada 5 min.
+     if(rec.sync==="ENVIADO"&&now-(rec.lastSyncTry||0)<300000)continue;
+
+     rec.lastSyncTry=Date.now();
+     const status=await postMovement(rec);
+     rec.sync=status;
+     if(status==="CONFIRMADO"){
+       delete rec.syncToken;
+     }
+     changed=true;
+   }
+   if(changed)save(records);
+ }finally{
+   syncRunning=false;
+   setSyncStatus();
+ }
+}
+
 
 async function start(){
  try{$("msg").textContent="Solicitando cámara…";if(!window.isSecureContext)throw new Error("Se requiere HTTPS");if(!navigator.mediaDevices?.getUserMedia)throw new Error("Cámara no disponible");if(typeof window.jsQR!=="function")throw new Error("Lector QR no cargó");
@@ -108,7 +270,11 @@ function render(){
 
    // Salida actual/final: una SALIDA que todavía no tenga REGRESO posterior.
    let finalOut=null;
-   if(last&&last.type==="SALIDA") finalOut=last;
+   if(last&&last.type==="SALIDA"){
+     const dep=mins(last.time);
+     const looksLikeLunch=e.lunchEligible&&dep>=750&&dep<=930&&nowMin<mins(e.exit);
+     if(!looksLikeLunch) finalOut=last;
+   }
 
    let obs=[];
    if(entry){
@@ -147,7 +313,10 @@ function render(){
    }
 
    let status="SIN REGISTRO";
-   if(last) status=last.type==="SALIDA"?"FUERA":"EN OFICINA";
+   if(last){
+     if(last.type==="SALIDA"&&e.lunchEligible&&mins(last.time)>=750&&mins(last.time)<=930&&nowMin<mins(e.exit)) status="FUERA / COMIDA";
+     else status=last.type==="SALIDA"?"FUERA":"EN OFICINA";
+   }
 
    let lunchOutTxt=e.lunchEligible?(lunchOut?lunchOut.time.slice(0,5):"—"):"NO APLICA";
    let lunchBackTxt=e.lunchEligible?(lunchBack?lunchBack.time.slice(0,5):"—"):"NO APLICA";
@@ -169,8 +338,9 @@ function render(){
  $("mAlert").textContent=alerts.length;
  $("summary").innerHTML=rows.join("");
  $("alerts").innerHTML=alerts.length?alerts.map(x=>`<div class="alert">${x}</div>`).join(""):"";
+ setSyncStatus();
 }
-function net(){$("net").textContent=navigator.onLine?"● EN LÍNEA":"● SIN INTERNET"}
+function net(){setSyncStatus();if(navigator.onLine)syncPending()}
 $("activate").onclick=start;
 $("clearTests").onclick=()=>{
   if(confirm("¿Borrar TODOS los registros de prueba guardados en este kiosco? Los QR y empleados no se borrarán.")){
@@ -179,5 +349,5 @@ $("clearTests").onclick=()=>{
     alert("Registros de prueba eliminados. El kiosco quedó limpio.");
   }
 };$("tk").onclick=()=>{$("kiosk").classList.remove("hidden");$("admin").classList.add("hidden");$("tk").classList.add("active");$("ta").classList.remove("active")};$("ta").onclick=()=>{$("admin").classList.remove("hidden");$("kiosk").classList.add("hidden");$("ta").classList.add("active");$("tk").classList.remove("active");render()};
-window.addEventListener("online",net);window.addEventListener("offline",net);net();render();
+window.addEventListener("online",net);window.addEventListener("offline",net);net();render();setTimeout(syncPending,1200);setInterval(syncPending,300000);
 </script></body></html>
