@@ -17,7 +17,7 @@ video{width:100%;height:100%;object-fit:cover}.frame{position:absolute;inset:22%
 .metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}.metric{background:#12253a;border-radius:14px;padding:13px}.metric b{display:block;font-size:25px}
 table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:9px 5px;border-bottom:1px solid #1f3550;text-align:left;vertical-align:top}th{color:#9fb2c7;font-size:10px;text-transform:uppercase}
 .pill{display:inline-block;padding:4px 7px;border-radius:999px;background:#173450}.alert{padding:9px 10px;border-radius:10px;background:#493b0d;color:#ffe59a;margin-bottom:8px;font-size:13px}
-.hidden{display:none!important}canvas{display:none}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.danger{padding:11px 13px;background:#8d2b2b;color:#fff}.secondary{padding:11px 13px;background:#173450;color:#fff}.obs{font-size:11px;color:#c7d5e5}.hidden{display:none!important}canvas{display:none}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 </head>
@@ -31,7 +31,20 @@ table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:9px 5px;b
 </div></section>
 <section id="admin" class="hidden">
 <div class="metrics"><div class="metric">Registros hoy<b id="mReg">0</b></div><div class="metric">Dentro ahora<b id="mIn">0</b></div><div class="metric">Personal V1<b>10</b></div><div class="metric">Alertas<b id="mAlert">0</b></div></div>
-<div class="card"><h3 style="margin-top:0">Resumen de hoy</h3><div id="alerts"></div><div style="overflow:auto"><table><thead><tr><th>Empleado</th><th>Entrada</th><th>Comida</th><th>Último</th><th>Estado</th></tr></thead><tbody id="summary"></tbody></table></div></div>
+<div class="card">
+<h3 style="margin-top:0">Resumen de hoy</h3>
+<div id="alerts"></div>
+<div style="overflow:auto">
+<table>
+<thead><tr><th>Empleado</th><th>Entrada</th><th>Salida comida</th><th>Regreso</th><th>Duración</th><th>Salida final</th><th>Estado / observación</th></tr></thead>
+<tbody id="summary"></tbody>
+</table>
+</div>
+<div class="actions">
+<button id="clearTests" class="danger">BORRAR REGISTROS DE PRUEBA</button>
+</div>
+<p class="small">El borrado elimina únicamente los registros guardados en este kiosco. No modifica los QR ni los empleados.</p>
+</div>
 </section>
 </div>
 <div id="result" class="result"><div><h1 id="rName"></h1><h2 id="rMove"></h2><div id="rTime" class="time"></div><div id="rSub" class="sub"></div></div></div>
@@ -69,14 +82,102 @@ async function start(){
 function loop(){if(!scanning)return;try{if(!busy&&video.readyState>=2&&video.videoWidth){canvas.width=video.videoWidth;canvas.height=video.videoHeight;ctx.drawImage(video,0,0,canvas.width,canvas.height);let im=ctx.getImageData(0,0,canvas.width,canvas.height),c=window.jsQR(im.data,im.width,im.height,{inversionAttempts:"attemptBoth"});if(c?.data)handle(c.data)}}catch(e){console.warn(e)}setTimeout(()=>requestAnimationFrame(loop),180)}
 
 function render(){
- let today=all().filter(x=>x.date===dateNow()).sort((a,b)=>a.ts-b.ts),rows=[],alerts=[],inside=0;$("mReg").textContent=today.length;
- for(const e of EMPLOYEES){let a=today.filter(x=>x.empId===e.id),entry=a.find(x=>x.type==="ENTRADA"),last=a[a.length-1];if(last&&(last.type==="ENTRADA"||last.type==="REGRESO"))inside++;
- let lunch=e.lunchEligible?"—":"NO APLICA";if(e.lunchEligible){for(let i=0;i<a.length-1;i++){if(a[i].type==="SALIDA"&&a[i+1].type==="REGRESO"&&mins(a[i].time)>=720&&mins(a[i].time)<=960){let d=Math.round((a[i+1].ts-a[i].ts)/60000);lunch=`${a[i].time.slice(0,5)}–${a[i+1].time.slice(0,5)} (${d}m)`;if(d>60)alerts.push(`${e.name}: exceso de comida ${d-60} min`);break}}}
- if(entry){let d=mins(entry.time)-480;if(d>10)alerts.push(`${e.name}: retardo ${d-10} min`)}let p=pattern(e.id);if(p.total>=4&&p.late>=4)alerts.push(`${e.name}: patrón de llegada después de 8:00 (${p.late}/${p.total})`);
- let status=!last?"SIN REGISTRO":last.type==="SALIDA"?"FUERA":"EN OFICINA";rows.push(`<tr><td>${e.name}<br><span class="small">${e.area}</span></td><td>${entry?entry.time.slice(0,5):"—"}</td><td>${lunch}</td><td>${last?last.time.slice(0,5)+" "+last.type:"—"}</td><td><span class="pill">${status}</span></td></tr>`)}
- $("mIn").textContent=inside;$("mAlert").textContent=alerts.length;$("summary").innerHTML=rows.join("");$("alerts").innerHTML=alerts.map(x=>`<div class="alert">${x}</div>`).join("")
+ let today=all().filter(x=>x.date===dateNow()).sort((a,b)=>a.ts-b.ts),rows=[],alerts=[],inside=0;
+ $("mReg").textContent=today.length;
+ const nowMin=mins(timeNow());
+
+ for(const e of EMPLOYEES){
+   let a=today.filter(x=>x.empId===e.id);
+   let entry=a.find(x=>x.type==="ENTRADA");
+   let last=a[a.length-1];
+   if(last&&(last.type==="ENTRADA"||last.type==="REGRESO"))inside++;
+
+   let lunchOut=null,lunchBack=null,lunchDuration=null;
+   if(e.lunchEligible){
+     for(let i=0;i<a.length-1;i++){
+       if(a[i].type==="SALIDA"&&a[i+1].type==="REGRESO"){
+         let dep=mins(a[i].time);
+         if(dep>=720&&dep<=960){
+           lunchOut=a[i]; lunchBack=a[i+1];
+           lunchDuration=Math.round((lunchBack.ts-lunchOut.ts)/60000);
+           break;
+         }
+       }
+     }
+   }
+
+   // Salida actual/final: una SALIDA que todavía no tenga REGRESO posterior.
+   let finalOut=null;
+   if(last&&last.type==="SALIDA") finalOut=last;
+
+   let obs=[];
+   if(entry){
+     let arrival=mins(entry.time), delta=arrival-480;
+     if(delta>10){
+       let eff=delta-10;
+       obs.push(`RETARDO ${eff} min`);
+       alerts.push(`${e.name}: retardo ${eff} min`);
+     } else if(delta>0){
+       obs.push(`Tolerancia: +${delta} min`);
+     }
+   }
+
+   if(lunchDuration!==null){
+     if(lunchDuration>60){
+       let excess=lunchDuration-60;
+       obs.push(`EXCESO COMIDA ${excess} min`);
+       alerts.push(`${e.name}: exceso de comida ${excess} min`);
+     }
+   }
+
+   // Patrón: llegar después de las 08:00 aunque todavía esté dentro de tolerancia.
+   let p=pattern(e.id);
+   if(p.total>=5 && p.late>=4){
+     obs.push(`PATRÓN ${p.late}/5 después de 8:00`);
+     alerts.push(`${e.name}: estás llegando después de las 8:00 en ${p.late} de tus últimos 5 días. Recuerda que la entrada es 8:00 AM.`);
+   } else if(p.total>=5 && p.late===3){
+     obs.push(`Atención: 3/5 después de 8:00`);
+   }
+
+   // Solo declarar salida anticipada cuando ya pasó su hora oficial y no hubo regreso.
+   if(finalOut && nowMin>=mins(e.exit) && mins(finalOut.time)<mins(e.exit)){
+     let early=mins(e.exit)-mins(finalOut.time);
+     obs.push(`SALIDA ANTICIPADA ${early} min`);
+     alerts.push(`${e.name}: salida anticipada ${early} min`);
+   }
+
+   let status="SIN REGISTRO";
+   if(last) status=last.type==="SALIDA"?"FUERA":"EN OFICINA";
+
+   let lunchOutTxt=e.lunchEligible?(lunchOut?lunchOut.time.slice(0,5):"—"):"NO APLICA";
+   let lunchBackTxt=e.lunchEligible?(lunchBack?lunchBack.time.slice(0,5):"—"):"NO APLICA";
+   let durationTxt=e.lunchEligible?(lunchDuration!==null?`${lunchDuration} min`:"—"):"NO APLICA";
+   let finalTxt=finalOut?finalOut.time.slice(0,5):"—";
+
+   rows.push(`<tr>
+     <td>${e.name}<br><span class="small">${e.area}</span></td>
+     <td>${entry?entry.time.slice(0,5):"—"}</td>
+     <td>${lunchOutTxt}</td>
+     <td>${lunchBackTxt}</td>
+     <td>${durationTxt}</td>
+     <td>${finalTxt}</td>
+     <td><span class="pill">${status}</span>${obs.length?`<br><span class="obs">${obs.join(" · ")}</span>`:""}</td>
+   </tr>`);
+ }
+
+ $("mIn").textContent=inside;
+ $("mAlert").textContent=alerts.length;
+ $("summary").innerHTML=rows.join("");
+ $("alerts").innerHTML=alerts.length?alerts.map(x=>`<div class="alert">${x}</div>`).join(""):"";
 }
 function net(){$("net").textContent=navigator.onLine?"● EN LÍNEA":"● SIN INTERNET"}
-$("activate").onclick=start;$("tk").onclick=()=>{$("kiosk").classList.remove("hidden");$("admin").classList.add("hidden");$("tk").classList.add("active");$("ta").classList.remove("active")};$("ta").onclick=()=>{$("admin").classList.remove("hidden");$("kiosk").classList.add("hidden");$("ta").classList.add("active");$("tk").classList.remove("active");render()};
+$("activate").onclick=start;
+$("clearTests").onclick=()=>{
+  if(confirm("¿Borrar TODOS los registros de prueba guardados en este kiosco? Los QR y empleados no se borrarán.")){
+    localStorage.removeItem(STORE);
+    render();
+    alert("Registros de prueba eliminados. El kiosco quedó limpio.");
+  }
+};$("tk").onclick=()=>{$("kiosk").classList.remove("hidden");$("admin").classList.add("hidden");$("tk").classList.add("active");$("ta").classList.remove("active")};$("ta").onclick=()=>{$("admin").classList.remove("hidden");$("kiosk").classList.add("hidden");$("ta").classList.add("active");$("tk").classList.remove("active");render()};
 window.addEventListener("online",net);window.addEventListener("offline",net);net();render();
 </script></body></html>
