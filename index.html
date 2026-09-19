@@ -1,61 +1,131 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#08131f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>ITESA · Asistencia Oficina</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#08131f;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
-.app{max-width:760px;margin:auto;min-height:100vh;padding:16px}.top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
-.brand{font-weight:900}.net{font-size:12px;padding:6px 10px;background:#12253a;border-radius:999px}.tabs{display:flex;gap:8px;margin-bottom:12px}
-button{border:0;border-radius:12px;font-weight:800;cursor:pointer}.tab{padding:10px 14px;background:#12253a;color:#d7e4f3}.tab.active{background:#fff;color:#08131f}
-.card{background:#0f1d2d;border:1px solid #1f3550;border-radius:18px;padding:14px}.camera{position:relative;aspect-ratio:3/4;background:#000;border-radius:16px;overflow:hidden}
-video{width:100%;height:100%;object-fit:cover}.frame{position:absolute;inset:22% 11%;border:3px solid #fff;border-radius:22px;box-shadow:0 0 0 9999px rgba(0,0,0,.25);pointer-events:none}
-.msg{position:absolute;left:12px;right:12px;bottom:12px;background:rgba(0,0,0,.65);padding:10px;border-radius:10px;text-align:center;font-size:13px}
-.activate{width:100%;margin-top:12px;padding:15px;background:#fff;color:#08131f;font-size:17px}.hint,.small{color:#aebfd1;font-size:12px;line-height:1.4}
-.result{display:none;position:fixed;inset:0;z-index:50;align-items:center;justify-content:center;text-align:center;padding:24px}.result.show{display:flex}.ok{background:#0d884a}.warn{background:#9a6700}.bad{background:#a72b2b}
-.result h1{font-size:30px;margin:0 0 8px}.result h2{font-size:28px;margin:0}.time{font-size:42px;font-weight:900;margin:12px 0}.sub{white-space:pre-line;font-size:17px}
-.metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}.metric{background:#12253a;border-radius:14px;padding:13px}.metric b{display:block;font-size:25px}
-table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:9px 5px;border-bottom:1px solid #1f3550;text-align:left;vertical-align:top}th{color:#9fb2c7;font-size:10px;text-transform:uppercase}
-.pill{display:inline-block;padding:4px 7px;border-radius:999px;background:#173450}.alert{padding:9px 10px;border-radius:10px;background:#493b0d;color:#ffe59a;margin-bottom:8px;font-size:13px}
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.danger{padding:11px 13px;background:#8d2b2b;color:#fff}.secondary{padding:11px 13px;background:#173450;color:#fff}.obs{font-size:11px;color:#c7d5e5}.hidden{display:none!important}canvas{display:none}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;background:#06101a;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;overscroll-behavior:none}
+body{min-height:100dvh;user-select:none}
+button{font:inherit;border:0;cursor:pointer}
+.app{max-width:760px;margin:auto;min-height:100dvh;padding:max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom))}
+.top{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;margin-bottom:12px;padding:2px 2px 0}
+.brand{font-weight:950;letter-spacing:.4px;font-size:20px;line-height:1.05}
+.brand small{display:block;color:#8fa6bb;font-size:10px;font-weight:800;letter-spacing:1.3px;margin-top:4px}
+.topright{display:flex;align-items:center;gap:7px}
+.clock{font-size:18px;font-weight:950;font-variant-numeric:tabular-nums}
+.net{font-size:10px;padding:6px 8px;background:#112438;border:1px solid #1d3955;border-radius:999px;white-space:nowrap}
+.card{background:#0c1a29;border:1px solid #1b3550;border-radius:22px;padding:12px;box-shadow:0 10px 35px rgba(0,0,0,.22)}
+.camera{position:relative;height:calc(100dvh - 190px);min-height:410px;max-height:760px;background:#000;border-radius:18px;overflow:hidden}
+video{width:100%;height:100%;object-fit:cover;background:#000}
+.frame{position:absolute;width:min(72%,420px);aspect-ratio:1/1;left:50%;top:47%;transform:translate(-50%,-50%);border:4px solid #fff;border-radius:30px;box-shadow:0 0 0 9999px rgba(0,0,0,.30),0 0 24px rgba(255,255,255,.28);pointer-events:none}
+.frame:before,.frame:after{content:"";position:absolute;inset:12px;border-radius:20px;border:1px solid rgba(255,255,255,.25)}
+.msg{position:absolute;left:14px;right:14px;bottom:14px;background:rgba(0,0,0,.66);backdrop-filter:blur(8px);padding:12px 10px;border-radius:13px;text-align:center;font-size:13px;font-weight:850;letter-spacing:.2px}
+.activate{width:100%;margin-top:12px;padding:17px 14px;background:#fff;color:#07111c;border-radius:16px;font-size:18px;font-weight:950;box-shadow:0 8px 26px rgba(0,0,0,.22)}
+.activate:active{transform:scale(.99)}
+.hint{margin:10px 2px 0;color:#94a9bc;font-size:11px;line-height:1.35;text-align:center}
+.small{color:#9cafc1;font-size:11px;line-height:1.35}
+.result{display:none;position:fixed;inset:0;z-index:50;align-items:center;justify-content:center;text-align:center;padding:24px}
+.result.show{display:flex}
+.ok{background:#0d884a}.warn{background:#9a6700}.bad{background:#a72b2b}
+.result h1{font-size:30px;margin:0 0 8px}.result h2{font-size:30px;margin:0}.time{font-size:46px;font-weight:950;margin:12px 0}.sub{white-space:pre-line;font-size:17px}
+.hidden{display:none!important}canvas{display:none}
+
+/* CONTROL */
+.adminTop{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.backKiosk{padding:10px 13px;border-radius:12px;background:#fff;color:#08131f;font-weight:900}
+.metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}
+.metric{background:#12253a;border-radius:14px;padding:13px}.metric b{display:block;font-size:25px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{padding:9px 5px;border-bottom:1px solid #1f3550;text-align:left;vertical-align:top}
+th{color:#9fb2c7;font-size:10px;text-transform:uppercase}
+.pill{display:inline-block;padding:4px 7px;border-radius:999px;background:#173450}
+.alert{padding:9px 10px;border-radius:10px;background:#493b0d;color:#ffe59a;margin-bottom:8px;font-size:13px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.danger{padding:11px 13px;border-radius:12px;background:#8d2b2b;color:#fff;font-weight:900}
+.secondary{padding:11px 13px;border-radius:12px;background:#173450;color:#fff;font-weight:900}
+.obs{font-size:11px;color:#c7d5e5}
+
+/* Small phones */
+@media(max-height:680px){
+ .camera{height:calc(100dvh - 175px);min-height:350px}
+ .brand{font-size:17px}.clock{font-size:16px}
+ .activate{padding:14px;font-size:16px}
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 </head>
 <body>
 <div class="app">
-<div class="top"><div class="brand">ITESA · ASISTENCIA OFICINA</div><div id="net" class="net"></div></div>
-<div class="tabs"><button id="tk" class="tab active">KIOSCO</button><button id="ta" class="tab">CONTROL</button></div>
-<section id="kiosk"><div class="card">
-<div class="camera"><video id="video" autoplay muted playsinline></video><canvas id="canvas"></canvas><div class="frame"></div><div id="msg" class="msg">Toca ACTIVAR CÁMARA</div></div>
-<button id="activate" class="activate">📷 ACTIVAR CÁMARA</button><p class="hint">Muestra el QR dentro del recuadro. El sistema determina automáticamente Entrada / Salida / Regreso.</p><div id="diag" class="small"></div>
-</div></section>
-<section id="admin" class="hidden">
-<div class="metrics"><div class="metric">Registros hoy<b id="mReg">0</b></div><div class="metric">Dentro ahora<b id="mIn">0</b></div><div class="metric">Personal V1<b>10</b></div><div class="metric">Alertas<b id="mAlert">0</b></div></div>
-<div class="card">
-<h3 style="margin-top:0">Resumen de hoy</h3>
-<div id="alerts"></div>
-<div style="overflow:auto">
-<table>
-<thead><tr><th>Empleado</th><th>Entrada</th><th>Salida comida</th><th>Regreso</th><th>Duración</th><th>Salida final</th><th>Estado / observación</th></tr></thead>
-<tbody id="summary"></tbody>
-</table>
-</div>
-<div class="actions">
-<button id="clearTests" class="danger">BORRAR REGISTROS DE PRUEBA</button>
-</div>
-<p class="small">El borrado elimina únicamente los registros guardados en este kiosco. No modifica los QR ni los empleados. Los QR se validan por hash y no están expuestos en el código público.</p>
-</div>
-</section>
-</div>
-<div id="result" class="result"><div><h1 id="rName"></h1><h2 id="rMove"></h2><div id="rTime" class="time"></div><div id="rSub" class="sub"></div></div></div>
+  <div class="top">
+    <div id="brandHold" class="brand">ITESA<small>ASISTENCIA OFICINA</small></div>
+    <div class="topright">
+      <div id="clock" class="clock">--:--</div>
+      <div id="net" class="net"></div>
+    </div>
+  </div>
 
+  <section id="kiosk">
+    <div class="card">
+      <div class="camera">
+        <video id="video" autoplay muted playsinline></video>
+        <canvas id="canvas"></canvas>
+        <div class="frame"></div>
+        <div id="msg" class="msg">INICIANDO CÁMARA…</div>
+      </div>
+      <button id="activate" class="activate">ACTIVAR CÁMARA</button>
+      <p class="hint">Muestra tu QR dentro del recuadro y espera la confirmación.</p>
+      <div id="diag" class="small"></div>
+    </div>
+  </section>
+
+  <section id="admin" class="hidden">
+    <div class="adminTop">
+      <div><b>CONTROL LOCAL</b><div class="small">Resumen guardado en este kiosco</div></div>
+      <button id="backKiosk" class="backKiosk">VOLVER AL KIOSCO</button>
+    </div>
+    <div class="metrics">
+      <div class="metric">Registros hoy<b id="mReg">0</b></div>
+      <div class="metric">Dentro ahora<b id="mIn">0</b></div>
+      <div class="metric">Personal V1<b>10</b></div>
+      <div class="metric">Alertas<b id="mAlert">0</b></div>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">Resumen de hoy</h3>
+      <div id="alerts"></div>
+      <div style="overflow:auto">
+        <table>
+          <thead><tr><th>Empleado</th><th>Entrada</th><th>Salida comida</th><th>Regreso</th><th>Duración</th><th>Salida final</th><th>Estado / observación</th></tr></thead>
+          <tbody id="summary"></tbody>
+        </table>
+      </div>
+      <div class="actions">
+        <button id="clearTests" class="danger">BORRAR REGISTROS DE PRUEBA</button>
+      </div>
+      <p class="small">El borrado elimina únicamente los registros guardados en este kiosco. No modifica los QR ni los empleados.</p>
+    </div>
+  </section>
+</div>
+
+<div id="result" class="result">
+  <div>
+    <h1 id="rName"></h1>
+    <h2 id="rMove"></h2>
+    <div id="rTime" class="time"></div>
+    <div id="rSub" class="sub"></div>
+  </div>
+</div>
 <script>
 const EMPLOYEES=[{"id":"OF-001","name":"BALAREZO/SUAREZ, LORENA","area":"VENTAS","entry":"08:00","tolerance":10,"exit":"17:30","lunchEligible":true,"lunchMinutes":60,"active":true,"hash":"c5f2c144509be5e38473806495c21767fba28dfff3661b1607b5d5d135055218"},{"id":"OF-002","name":"CHAVEZ/DOMINGUEZ, SANJUANA","area":"LIMPIEZA","entry":"08:00","tolerance":10,"exit":"15:00","lunchEligible":false,"lunchMinutes":0,"active":true,"hash":"1b89dc2b7adec4b267880d378b979e4e011438de9bbdc84384b7f06b659d9e10"},{"id":"OF-003","name":"DELGADO/AGUILAR, JESUS","area":"VENTAS","entry":"08:00","tolerance":10,"exit":"17:30","lunchEligible":true,"lunchMinutes":60,"active":true,"hash":"3c5d92ba5622d13a5cbd237d3231abe2bf75f161445e1545978beb45a607faea"},{"id":"OF-004","name":"GARCIA/MORENO, JUAN ANGEL","area":"VENTAS","entry":"08:00","tolerance":10,"exit":"17:30","lunchEligible":true,"lunchMinutes":60,"active":true,"hash":"446b29376da21d0c1d03777894b6eab1693820b6b63e86e1ccc352e272ae1df5"},{"id":"OF-005","name":"MORALES/HERNANDEZ, ERIKA SARAHI","area":"VENTAS","entry":"08:00","tolerance":10,"exit":"17:30","lunchEligible":true,"lunchMinutes":60,"active":true,"hash":"a037cf4a8e3b1d1ccb175514f57a449d5aa3e754afb764cb142ed57b704959c0"},{"id":"OF-006","name":"MORALES/LARA, ROCIO ISABEL","area":"AUX CONTABLE","entry":"08:00","tolerance":10,"exit":"17:30","lunchEligible":true,"lunchMinutes":60,"active":true,"hash":"da2013932409ac0c4d3d7998ef5b1c4eed3a71d84f8d3d1351b93613900641c2"},{"id":"OF-007","name":"OYARZABAL/VARELA, JESUS MANUEL","area":"VENTAS","entry":"08:00","tolerance":10,"exit":"17:30","lunchEligible":true,"lunchMinutes":60,"active":true,"hash":"3a0fbcb6525acbeb55effd1c5d8ac18e949be424e9c2c84eb77604180fd32ead"},{"id":"OF-008","name":"RANGEL/CARDONA, LUIS ALBERTO","area":"VENTAS","entry":"08:00","tolerance":10,"exit":"17:30","lunchEligible":true,"lunchMinutes":60,"active":true,"hash":"989cf226f4aa7ddfdc2d435af2aa8d0987f6b011935d0c279bc4980722d8f7a9"},{"id":"OF-009","name":"SANTACRUZ/AYALA, GRACIELA","area":"AUX CONTABLE","entry":"08:00","tolerance":10,"exit":"17:30","lunchEligible":true,"lunchMinutes":60,"active":true,"hash":"aae8401ddf0a2a4febc3bf03d59391b4694ec85d72c3681c65140671ea608e99"},{"id":"OF-010","name":"VELEZ/HERNANDEZ, OCTAVIO ADOLFO","area":"VENTAS","entry":"08:00","tolerance":10,"exit":"17:30","lunchEligible":true,"lunchMinutes":60,"active":true,"hash":"25869f26f292757d5f153975ba889cc35e367a2a2ba7162e3aa2c38c397ef96c"}];
 const TZ="America/Monterrey",STORE="itesa_oficina_real_v1",COOLDOWN=60000;
 const WEB_APP_URL="https://script.google.com/macros/s/AKfycbz4ErGwtHBJkL0alabIadO3tuu3wO5CN9r9Nyh3wNQc14yxpmAu7j03dyJccgqowhjDkA/exec";
 let syncRunning=false;
 const $=x=>document.getElementById(x),video=$("video"),canvas=$("canvas"),ctx=canvas.getContext("2d",{willReadFrequently:true});
-let busy=false,scanning=false,stream=null;
+let busy=false,scanning=false,stream=null,wakeLock=null,holdTimer=null;
 
 function fmtParts(d=new Date()){const p=new Intl.DateTimeFormat("en-US",{timeZone:TZ,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).formatToParts(d),o={};for(const x of p)if(x.type!=="literal")o[x.type]=x.value;return o}
 function dateNow(){let p=fmtParts();return `${p.year}-${p.month}-${p.day}`}function timeNow(){let p=fmtParts();return `${p.hour}:${p.minute}:${p.second}`}
@@ -236,10 +306,93 @@ async function syncPending(){
 }
 
 
+function updateClock(){
+ const p=fmtParts();
+ $("clock").textContent=`${p.hour}:${p.minute}`;
+}
+
+async function enterKioskMode(){
+ try{
+   if(document.documentElement.requestFullscreen && !document.fullscreenElement){
+     await document.documentElement.requestFullscreen();
+   }
+ }catch(e){console.warn("Fullscreen no disponible",e)}
+
+ try{
+   if("wakeLock" in navigator){
+     wakeLock=await navigator.wakeLock.request("screen");
+   }
+ }catch(e){console.warn("Wake Lock no disponible",e)}
+}
+
+async function restoreCameraIfNeeded(){
+ if(document.visibilityState!=="visible")return;
+ updateClock();
+
+ const liveTrack = stream && stream.getVideoTracks && stream.getVideoTracks()
+   .some(t=>t.readyState==="live");
+
+ if(!liveTrack){
+   scanning=false;
+   try{await start()}catch(e){}
+   return;
+ }
+
+ if(video.srcObject){
+   try{await video.play()}catch(e){}
+ }
+
+ if("wakeLock" in navigator && !wakeLock){
+   try{wakeLock=await navigator.wakeLock.request("screen")}catch(e){}
+ }
+}
+
+function showAdmin(){
+ $("admin").classList.remove("hidden");
+ $("kiosk").classList.add("hidden");
+ render();
+}
+
+function showKiosk(){
+ $("kiosk").classList.remove("hidden");
+ $("admin").classList.add("hidden");
+}
+
+
 async function start(){
- try{$("msg").textContent="Solicitando cámara…";if(!window.isSecureContext)throw new Error("Se requiere HTTPS");if(!navigator.mediaDevices?.getUserMedia)throw new Error("Cámara no disponible");if(typeof window.jsQR!=="function")throw new Error("Lector QR no cargó");
- stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:1280},height:{ideal:720}},audio:false});video.srcObject=stream;await video.play();$("activate").style.display="none";$("msg").textContent="CÁMARA ACTIVA · MUESTRA EL QR";scanning=true;requestAnimationFrame(loop)}
- catch(e){$("msg").textContent="ERROR DE CÁMARA";$("diag").textContent=(e.name?e.name+": ":"")+e.message}
+ try{
+   $("msg").textContent="INICIANDO KIOSCO…";
+   $("diag").textContent="";
+   await enterKioskMode();
+
+   if(!window.isSecureContext)throw new Error("Se requiere HTTPS");
+   if(!navigator.mediaDevices?.getUserMedia)throw new Error("Cámara no disponible");
+   if(typeof window.jsQR!=="function")throw new Error("Lector QR no cargó");
+
+   if(stream){
+     try{stream.getTracks().forEach(t=>t.stop())}catch(e){}
+   }
+
+   stream=await navigator.mediaDevices.getUserMedia({
+     video:{
+       facingMode:{ideal:"environment"},
+       width:{ideal:1280},
+       height:{ideal:720}
+     },
+     audio:false
+   });
+
+   video.srcObject=stream;
+   await video.play();
+   $("activate").style.display="none";
+   $("msg").textContent="LISTO · MUESTRA TU QR";
+   scanning=true;
+   requestAnimationFrame(loop);
+ }catch(e){
+   $("msg").textContent="ERROR DE CÁMARA";
+   $("diag").textContent=(e.name?e.name+": ":"")+e.message;
+   $("activate").style.display="block";
+ }
 }
 function loop(){if(!scanning)return;try{if(!busy&&video.readyState>=2&&video.videoWidth){canvas.width=video.videoWidth;canvas.height=video.videoHeight;ctx.drawImage(video,0,0,canvas.width,canvas.height);let im=ctx.getImageData(0,0,canvas.width,canvas.height),c=window.jsQR(im.data,im.width,im.height,{inversionAttempts:"attemptBoth"});if(c?.data)handle(c.data)}}catch(e){console.warn(e)}setTimeout(()=>requestAnimationFrame(loop),180)}
 
@@ -341,13 +494,46 @@ function render(){
  setSyncStatus();
 }
 function net(){setSyncStatus();if(navigator.onLine)syncPending()}
-$("activate").onclick=start;
+$("activate").onclick=()=>start();
+
 $("clearTests").onclick=()=>{
   if(confirm("¿Borrar TODOS los registros de prueba guardados en este kiosco? Los QR y empleados no se borrarán.")){
     localStorage.removeItem(STORE);
     render();
     alert("Registros de prueba eliminados. El kiosco quedó limpio.");
   }
-};$("tk").onclick=()=>{$("kiosk").classList.remove("hidden");$("admin").classList.add("hidden");$("tk").classList.add("active");$("ta").classList.remove("active")};$("ta").onclick=()=>{$("admin").classList.remove("hidden");$("kiosk").classList.add("hidden");$("ta").classList.add("active");$("tk").classList.remove("active");render()};
-window.addEventListener("online",net);window.addEventListener("offline",net);net();render();setTimeout(syncPending,1200);setInterval(syncPending,300000);
+};
+
+$("backKiosk").onclick=showKiosk;
+
+/* Acceso discreto al control: mantener presionado ITESA por 3 segundos. */
+$("brandHold").addEventListener("pointerdown",()=>{
+  clearTimeout(holdTimer);
+  holdTimer=setTimeout(showAdmin,3000);
+});
+["pointerup","pointercancel","pointerleave"].forEach(ev=>{
+  $("brandHold").addEventListener(ev,()=>clearTimeout(holdTimer));
+});
+
+window.addEventListener("online",net);
+window.addEventListener("offline",net);
+document.addEventListener("visibilitychange",restoreCameraIfNeeded);
+window.addEventListener("pageshow",restoreCameraIfNeeded);
+
+updateClock();
+setInterval(updateClock,1000);
+net();
+render();
+
+/* Arranque automático del lector.
+   Si Chrome ya tiene permiso de cámara, no hay que tocar ningún botón.
+   Si Android/Chrome exige interacción o vuelve a pedir permiso, el botón queda como respaldo. */
+setTimeout(async()=>{
+  if(document.visibilityState==="visible"){
+    try{await start()}catch(e){}
+  }
+},500);
+
+setTimeout(syncPending,1200);
+setInterval(syncPending,300000);
 </script></body></html>
