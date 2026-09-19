@@ -1,0 +1,26 @@
+{
+  "id": "/ITESA-Asistencia-Oficina/",
+  "name": "ITESA Asistencia Oficina",
+  "short_name": "ITESA",
+  "description": "Kiosco de registro de asistencia ITESA / Inova Glass",
+  "start_url": "/ITESA-Asistencia-Oficina/?app=v2",
+  "scope": "/ITESA-Asistencia-Oficina/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#06101a",
+  "theme_color": "#08131f",
+  "icons": [
+    {
+      "src": "itesa-asistencia-v2-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "itesa-asistencia-v2-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

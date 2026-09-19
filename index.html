@@ -7,9 +7,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>ITESA · Asistencia Oficina</title>
-<link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="manifest-v2.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="itesa-asistencia-v2-192.png">
+<link rel="apple-touch-icon" href="itesa-asistencia-v2-192.png">
 
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -579,4 +579,13 @@ setTimeout(async()=>{
 
 setTimeout(syncPending,1200);
 setInterval(syncPending,300000);
-</script></body></html>
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch(err => console.warn("SW:", err));
+  });
+}
+</script>
+
+</body></html>
