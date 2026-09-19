@@ -128,7 +128,7 @@ const TZ="America/Monterrey",STORE="itesa_oficina_real_v1",COOLDOWN=60000;
 const WEB_APP_URL="https://script.google.com/macros/s/AKfycbz4ErGwtHBJkL0alabIadO3tuu3wO5CN9r9Nyh3wNQc14yxpmAu7j03dyJccgqowhjDkA/exec";
 let syncRunning=false;
 const $=x=>document.getElementById(x),video=$("video"),canvas=$("canvas"),ctx=canvas.getContext("2d",{willReadFrequently:true});
-let busy=false,scanning=false,stream=null,wakeLock=null,holdTimer=null;
+let busy=false,scanning=false,stream=null,wakeLock=null,holdTimer=null,starting=false;
 
 function fmtParts(d=new Date()){const p=new Intl.DateTimeFormat("en-US",{timeZone:TZ,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).formatToParts(d),o={};for(const x of p)if(x.type!=="literal")o[x.type]=x.value;return o}
 function dateNow(){let p=fmtParts();return `${p.year}-${p.month}-${p.day}`}function timeNow(){let p=fmtParts();return `${p.hour}:${p.minute}:${p.second}`}
@@ -335,6 +335,7 @@ async function enterKioskMode(){
 async function restoreCameraIfNeeded(){
  if(document.visibilityState!=="visible")return;
  updateClock();
+ if(starting)return;
 
  const liveTrack = stream && stream.getVideoTracks && stream.getVideoTracks()
    .some(t=>t.readyState==="live");
@@ -346,7 +347,9 @@ async function restoreCameraIfNeeded(){
  }
 
  if(video.srcObject){
-   try{await video.play()}catch(e){}
+   try{await video.play()}catch(e){
+     if(e?.name!=="AbortError") console.warn(e);
+   }
  }
 
  if("wakeLock" in navigator && !wakeLock){
@@ -367,6 +370,9 @@ function showKiosk(){
 
 
 async function start(){
+ if(starting)return;
+ starting=true;
+
  try{
    $("msg").textContent="INICIANDO KIOSCO…";
    $("diag").textContent="";
@@ -376,29 +382,55 @@ async function start(){
    if(!navigator.mediaDevices?.getUserMedia)throw new Error("Cámara no disponible");
    if(typeof window.jsQR!=="function")throw new Error("Lector QR no cargó");
 
-   if(stream){
-     try{stream.getTracks().forEach(t=>t.stop())}catch(e){}
+   const liveTrack = stream && stream.getVideoTracks && stream.getVideoTracks()
+     .some(t=>t.readyState==="live");
+
+   if(!liveTrack){
+     if(stream){
+       try{stream.getTracks().forEach(t=>t.stop())}catch(e){}
+     }
+
+     stream=await navigator.mediaDevices.getUserMedia({
+       video:{
+         facingMode:{ideal:"environment"},
+         width:{ideal:1280},
+         height:{ideal:720}
+       },
+       audio:false
+     });
+
+     video.srcObject=stream;
    }
 
-   stream=await navigator.mediaDevices.getUserMedia({
-     video:{
-       facingMode:{ideal:"environment"},
-       width:{ideal:1280},
-       height:{ideal:720}
-     },
-     audio:false
-   });
+   try{
+     await video.play();
+   }catch(e){
+     if(e?.name!=="AbortError") throw e;
+     await new Promise(r=>setTimeout(r,250));
+     if(video.srcObject) {
+       try{await video.play()}catch(err){
+         if(err?.name!=="AbortError") throw err;
+       }
+     }
+   }
 
-   video.srcObject=stream;
-   await video.play();
    $("activate").style.display="none";
    $("msg").textContent="LISTO · MUESTRA TU QR";
+   $("diag").textContent="";
    scanning=true;
    requestAnimationFrame(loop);
+
  }catch(e){
-   $("msg").textContent="ERROR DE CÁMARA";
-   $("diag").textContent=(e.name?e.name+": ":"")+e.message;
-   $("activate").style.display="block";
+   if(e?.name==="AbortError"){
+     $("diag").textContent="";
+     setTimeout(()=>start(),300);
+   }else{
+     $("msg").textContent="ERROR DE CÁMARA";
+     $("diag").textContent=(e.name?e.name+": ":"")+e.message;
+     $("activate").style.display="block";
+   }
+ }finally{
+   starting=false;
  }
 }
 function loop(){if(!scanning)return;try{if(!busy&&video.readyState>=2&&video.videoWidth){canvas.width=video.videoWidth;canvas.height=video.videoHeight;ctx.drawImage(video,0,0,canvas.width,canvas.height);let im=ctx.getImageData(0,0,canvas.width,canvas.height),c=window.jsQR(im.data,im.width,im.height,{inversionAttempts:"attemptBoth"});if(c?.data)handle(c.data)}}catch(e){console.warn(e)}setTimeout(()=>requestAnimationFrame(loop),180)}
