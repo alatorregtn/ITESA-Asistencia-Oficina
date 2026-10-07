@@ -131,7 +131,7 @@ th{color:#9fb2c7;font-size:10px;text-transform:uppercase}
 </div>
 <script>
 const EMPLOYEES=[{"id":"OF-001","name":"BALAREZO/SUAREZ, LORENA","area":"VENTAS","entry":"08:00","tolerance":10,"exit":"17:30","lunchEligible":true,"lunchMinutes":60,"active":true,"hash":"c5f2c144509be5e38473806495c21767fba28dfff3661b1607b5d5d135055218"},{"id":"OF-002","name":"CHAVEZ/DOMINGUEZ, SANJUANA","area":"LIMPIEZA","entry":"08:00","tolerance":10,"exit":"15:00","lunchEligible":false,"lunchMinutes":0,"active":true,"hash":"1b89dc2b7adec4b267880d378b979e4e011438de9bbdc84384b7f06b659d9e10"},{"id":"OF-003","name":"DELGADO/AGUILAR, JESUS","area":"VENTAS","entry":"08:00","tolerance":10,"exit":"17:30","lunchEligible":true,"lunchMinutes":60,"active":true,"hash":"3c5d92ba5622d13a5cbd237d3231abe2bf75f161445e1545978beb45a607faea"},{"id":"OF-004","name":"GARCIA/MORENO, JUAN ANGEL","area":"VENTAS","entry":"08:00","tolerance":10,"exit":"17:30","lunchEligible":true,"lunchMinutes":60,"active":true,"hash":"446b29376da21d0c1d03777894b6eab1693820b6b63e86e1ccc352e272ae1df5"},{"id":"OF-005","name":"MORALES/HERNANDEZ, ERIKA SARAHI","area":"VENTAS","entry":"08:00","tolerance":10,"exit":"17:30","lunchEligible":true,"lunchMinutes":60,"active":true,"hash":"a037cf4a8e3b1d1ccb175514f57a449d5aa3e754afb764cb142ed57b704959c0"},{"id":"OF-006","name":"MORALES/LARA, ROCIO ISABEL","area":"AUX CONTABLE","entry":"08:00","tolerance":10,"exit":"17:30","lunchEligible":true,"lunchMinutes":60,"active":true,"hash":"da2013932409ac0c4d3d7998ef5b1c4eed3a71d84f8d3d1351b93613900641c2"},{"id":"OF-007","name":"OYARZABAL/VARELA, JESUS MANUEL","area":"VENTAS","entry":"08:00","tolerance":10,"exit":"17:30","lunchEligible":true,"lunchMinutes":60,"active":true,"hash":"3a0fbcb6525acbeb55effd1c5d8ac18e949be424e9c2c84eb77604180fd32ead"},{"id":"OF-008","name":"RANGEL/CARDONA, LUIS ALBERTO","area":"VENTAS","entry":"08:00","tolerance":10,"exit":"17:30","lunchEligible":true,"lunchMinutes":60,"active":true,"hash":"989cf226f4aa7ddfdc2d435af2aa8d0987f6b011935d0c279bc4980722d8f7a9"},{"id":"OF-009","name":"SANTACRUZ/AYALA, GRACIELA","area":"AUX CONTABLE","entry":"08:00","tolerance":10,"exit":"17:30","lunchEligible":true,"lunchMinutes":60,"active":true,"hash":"aae8401ddf0a2a4febc3bf03d59391b4694ec85d72c3681c65140671ea608e99"},{"id":"OF-010","name":"VELEZ/HERNANDEZ, OCTAVIO ADOLFO","area":"VENTAS","entry":"08:00","tolerance":10,"exit":"17:30","lunchEligible":true,"lunchMinutes":60,"active":true,"hash":"25869f26f292757d5f153975ba889cc35e367a2a2ba7162e3aa2c38c397ef96c"}];
-const TZ="America/Monterrey",STORE="itesa_oficina_real_v1",COOLDOWN=60000;
+const TZ="America/Monterrey",STORE="itesa_oficina_real_v1",COOLDOWN=10000;
 const WEB_APP_URL="https://script.google.com/macros/s/AKfycbz4ErGwtHBJkL0alabIadO3tuu3wO5CN9r9Nyh3wNQc14yxpmAu7j03dyJccgqowhjDkA/exec";
 let syncRunning=false,centralReachable=false,lastCentralOk=0;
 const $=x=>document.getElementById(x),video=$("video"),canvas=$("canvas"),ctx=canvas.getContext("2d",{willReadFrequently:true});
@@ -266,7 +266,7 @@ async function handle(raw){
    let a=all(),now=Date.now(),last=a.filter(x=>x.empId===e.id).sort((x,y)=>y.ts-x.ts)[0];
 
    if(last&&now-last.ts<COOLDOWN){
-     pop("warn",e.name,"REGISTRO YA REALIZADO",last.time,"Espera 60 segundos");
+     pop("warn",e.name,"REGISTRO YA REALIZADO",last.time,"Espera 10 segundos");
      return;
    }
 
