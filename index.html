@@ -1,4967 +1,914 @@
-const SPREADSHEET_ID = "1zu4EyaXOmQXu0gmXyN24e1Z0YkHcYCHXODKk96U4Xqo";
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#08131f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>ITESA · Asistencia Oficina</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;background:#06101a;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;overscroll-behavior:none}
+body{min-height:100dvh;user-select:none}
+button{font:inherit;border:0;cursor:pointer}
+.app{max-width:760px;margin:auto;min-height:100dvh;padding:max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom))}
+.top{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;margin-bottom:12px;padding:2px 2px 0}
+.brand{font-weight:950;letter-spacing:.4px;font-size:20px;line-height:1.05}
+.brand small{display:block;color:#8fa6bb;font-size:10px;font-weight:800;letter-spacing:1.3px;margin-top:4px}
+.topright{display:flex;align-items:center;gap:7px}
+.clock{font-size:18px;font-weight:950;font-variant-numeric:tabular-nums}
+.net{font-size:10px;padding:6px 8px;background:#112438;border:1px solid #1d3955;border-radius:999px;white-space:nowrap;display:flex;align-items:center;gap:5px}
+.statusDot{width:8px;height:8px;border-radius:50%;display:inline-block;flex:0 0 auto}
+.statusDot.online{background:#22c55e;box-shadow:0 0 8px rgba(34,197,94,.8)}
+.statusDot.offline{background:#ef4444;box-shadow:0 0 8px rgba(239,68,68,.8)}
+.card{background:#0c1a29;border:1px solid #1b3550;border-radius:22px;padding:12px;box-shadow:0 10px 35px rgba(0,0,0,.22)}
+.camera{position:relative;height:calc(100dvh - 190px);min-height:410px;max-height:760px;background:#000;border-radius:18px;overflow:hidden}
+video{width:100%;height:100%;object-fit:cover;background:#000}
+.frame{position:absolute;width:min(72%,420px);aspect-ratio:1/1;left:50%;top:47%;transform:translate(-50%,-50%);border:4px solid #fff;border-radius:30px;box-shadow:0 0 0 9999px rgba(0,0,0,.30),0 0 24px rgba(255,255,255,.28);pointer-events:none}
+.frame:before,.frame:after{content:"";position:absolute;inset:12px;border-radius:20px;border:1px solid rgba(255,255,255,.25)}
+.msg{position:absolute;left:14px;right:14px;bottom:14px;background:rgba(0,0,0,.66);backdrop-filter:blur(8px);padding:12px 10px;border-radius:13px;text-align:center;font-size:13px;font-weight:850;letter-spacing:.2px}
+.activate{width:100%;margin-top:12px;padding:17px 14px;background:#fff;color:#07111c;border-radius:16px;font-size:18px;font-weight:950;box-shadow:0 8px 26px rgba(0,0,0,.22)}
+.activate:active{transform:scale(.99)}
+.hint{margin:10px 2px 0;color:#94a9bc;font-size:11px;line-height:1.35;text-align:center}
+.small{color:#9cafc1;font-size:11px;line-height:1.35}
+.result{display:none;position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;text-align:center;padding:28px;background:#0d884a;pointer-events:none}
+.result.show{display:flex}
+.ok{background:#0d884a}.entry{background:#0d884a}.exit{background:#075985}.return{background:#0f766e}.warn{background:#9a6700}.bad{background:#a72b2b}
+.result>div{width:min(94vw,720px)}
+.result h1{font-size:clamp(28px,7vw,54px);line-height:1.05;margin:0 0 18px;font-weight:950}
+.result h2{font-size:clamp(38px,10vw,74px);line-height:1;margin:0;font-weight:1000;letter-spacing:.5px}
+.time{font-size:clamp(56px,15vw,104px);font-weight:1000;margin:24px 0 18px;font-variant-numeric:tabular-nums}
+.sub{white-space:pre-line;font-size:clamp(18px,4.8vw,30px);line-height:1.3;font-weight:850}
+.syncBig{display:block;margin-top:22px;font-size:clamp(18px,4.5vw,28px);font-weight:1000}
+.hidden{display:none!important}canvas{display:none}
 
-const TZ = "America/Monterrey";
+/* CONTROL */
+.adminTop{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.backKiosk{padding:10px 13px;border-radius:12px;background:#fff;color:#08131f;font-weight:900}
+.metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}
+.metric{background:#12253a;border-radius:14px;padding:13px}.metric b{display:block;font-size:25px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{padding:9px 5px;border-bottom:1px solid #1f3550;text-align:left;vertical-align:top}
+th{color:#9fb2c7;font-size:10px;text-transform:uppercase}
+.pill{display:inline-block;padding:4px 7px;border-radius:999px;background:#173450}
+.alert{padding:9px 10px;border-radius:10px;background:#493b0d;color:#ffe59a;margin-bottom:8px;font-size:13px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.danger{padding:11px 13px;border-radius:12px;background:#8d2b2b;color:#fff;font-weight:900}
+.secondary{padding:11px 13px;border-radius:12px;background:#173450;color:#fff;font-weight:900}
+.obs{font-size:11px;color:#c7d5e5}
 
+/* Small phones */
+@media(max-height:680px){
+ .camera{height:calc(100dvh - 175px);min-height:350px}
+ .brand{font-size:17px}.clock{font-size:16px}
+ .activate{padding:14px;font-size:16px}
+}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div id="brandHold" class="brand">ITESA<small>ASISTENCIA OFICINA</small></div>
+    <div class="topright">
+      <div id="clock" class="clock">--:--</div>
+      <div id="net" class="net"></div>
+    </div>
+  </div>
 
+  <section id="kiosk">
+    <div class="card">
+      <div class="camera">
+        <video id="video" autoplay muted playsinline></video>
+        <canvas id="canvas"></canvas>
+        <div class="frame"></div>
+        <div id="msg" class="msg">INICIANDO CÁMARA…</div>
+      </div>
+      <button id="activate" class="activate">ACTIVAR CÁMARA</button>
+      <p class="hint">Muestra tu QR hasta ver “QR LEÍDO” y retíralo. El siguiente compañero puede escanear mientras Central sincroniza.</p>
+      <div id="diag" class="small"></div>
+    </div>
+  </section>
 
-const SHEET_MOVIMIENTOS = "MOVIMIENTOS";
+  <section id="admin" class="hidden">
+    <div class="adminTop">
+      <div><b>CONTROL LOCAL</b><div class="small">Resumen guardado en este kiosco</div></div>
+      <button id="backKiosk" class="backKiosk">VOLVER AL KIOSCO</button>
+    </div>
+    <div class="metrics">
+      <div class="metric">Registros hoy<b id="mReg">0</b></div>
+      <div class="metric">Dentro ahora<b id="mIn">0</b></div>
+      <div class="metric">Personal V1<b>10</b></div>
+      <div class="metric">Alertas<b id="mAlert">0</b></div>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">Resumen de hoy</h3>
+      <div id="alerts"></div>
+      <div style="overflow:auto">
+        <table>
+          <thead><tr><th>Empleado</th><th>Entrada</th><th>Salida comida</th><th>Regreso</th><th>Duración</th><th>Salida final</th><th>Estado / observación</th></tr></thead>
+          <tbody id="summary"></tbody>
+        </table>
+      </div>
+      <div class="actions">
+        <button id="syncNow" class="secondary">SINCRONIZAR AHORA</button>
+        <button id="clearTests" class="danger">REINICIAR ESTADO LOCAL DE HOY</button>
+      </div>
+      <p class="small">Este reinicio afecta solo el estado local de hoy. No modifica el registro central, los QR ni los empleados, y conserva los días anteriores.</p>
+    </div>
+  </section>
+</div>
 
-const SHEET_EMPLEADOS = "EMPLEADOS";
+<div id="result" class="result">
+  <div>
+    <h1 id="rName"></h1>
+    <h2 id="rMove"></h2>
+    <div id="rTime" class="time"></div>
+    <div id="rSub" class="sub"></div>
+    <div id="rSync" class="syncBig"></div>
+  </div>
+</div>
+<script>
+const EMPLOYEES=[{"id":"OF-001","name":"BALAREZO/SUAREZ, LORENA","area":"VENTAS","entry":"08:00","tolerance":10,"exit":"17:30","lunchEligible":true,"lunchMinutes":60,"active":true,"hash":"c5f2c144509be5e38473806495c21767fba28dfff3661b1607b5d5d135055218"},{"id":"OF-002","name":"CHAVEZ/DOMINGUEZ, SANJUANA","area":"LIMPIEZA","entry":"08:00","tolerance":10,"exit":"15:00","lunchEligible":false,"lunchMinutes":0,"active":true,"hash":"1b89dc2b7adec4b267880d378b979e4e011438de9bbdc84384b7f06b659d9e10"},{"id":"OF-003","name":"DELGADO/AGUILAR, JESUS","area":"VENTAS","entry":"08:00","tolerance":10,"exit":"17:30","lunchEligible":true,"lunchMinutes":60,"active":true,"hash":"3c5d92ba5622d13a5cbd237d3231abe2bf75f161445e1545978beb45a607faea"},{"id":"OF-004","name":"GARCIA/MORENO, JUAN ANGEL","area":"VENTAS","entry":"08:00","tolerance":10,"exit":"17:30","lunchEligible":true,"lunchMinutes":60,"active":true,"hash":"446b29376da21d0c1d03777894b6eab1693820b6b63e86e1ccc352e272ae1df5"},{"id":"OF-005","name":"MORALES/HERNANDEZ, ERIKA SARAHI","area":"VENTAS","entry":"08:00","tolerance":10,"exit":"17:30","lunchEligible":true,"lunchMinutes":60,"active":true,"hash":"a037cf4a8e3b1d1ccb175514f57a449d5aa3e754afb764cb142ed57b704959c0"},{"id":"OF-006","name":"MORALES/LARA, ROCIO ISABEL","area":"AUX CONTABLE","entry":"08:00","tolerance":10,"exit":"17:30","lunchEligible":true,"lunchMinutes":60,"active":true,"hash":"da2013932409ac0c4d3d7998ef5b1c4eed3a71d84f8d3d1351b93613900641c2"},{"id":"OF-007","name":"OYARZABAL/VARELA, JESUS MANUEL","area":"VENTAS","entry":"08:00","tolerance":10,"exit":"17:30","lunchEligible":true,"lunchMinutes":60,"active":true,"hash":"3a0fbcb6525acbeb55effd1c5d8ac18e949be424e9c2c84eb77604180fd32ead"},{"id":"OF-008","name":"RANGEL/CARDONA, LUIS ALBERTO","area":"VENTAS","entry":"08:00","tolerance":10,"exit":"17:30","lunchEligible":true,"lunchMinutes":60,"active":true,"hash":"989cf226f4aa7ddfdc2d435af2aa8d0987f6b011935d0c279bc4980722d8f7a9"},{"id":"OF-009","name":"SANTACRUZ/AYALA, GRACIELA","area":"AUX CONTABLE","entry":"08:00","tolerance":10,"exit":"17:30","lunchEligible":true,"lunchMinutes":60,"active":true,"hash":"aae8401ddf0a2a4febc3bf03d59391b4694ec85d72c3681c65140671ea608e99"},{"id":"OF-010","name":"VELEZ/HERNANDEZ, OCTAVIO ADOLFO","area":"VENTAS","entry":"08:00","tolerance":10,"exit":"17:30","lunchEligible":true,"lunchMinutes":60,"active":true,"hash":"25869f26f292757d5f153975ba889cc35e367a2a2ba7162e3aa2c38c397ef96c"}];
+const TZ="America/Monterrey",STORE="itesa_oficina_real_v1",COOLDOWN=10000;
+const QR_RELEASE_MS=1200;
+const WEB_APP_URL="https://script.google.com/macros/s/AKfycbz4ErGwtHBJkL0alabIadO3tuu3wO5CN9r9Nyh3wNQc14yxpmAu7j03dyJccgqowhjDkA/exec";
+let syncRunning=false,centralReachable=false,lastCentralOk=0,centralFailCount=0;
+const $=x=>document.getElementById(x),video=$("video"),canvas=$("canvas"),ctx=canvas.getContext("2d",{willReadFrequently:true});
+let scanning=false,stream=null,wakeLock=null,holdTimer=null,starting=false;
+let scanQueue=[],queueRunning=false,resultTimer=null;
 
-const SHEET_DASHBOARD = "DASHBOARD";
+/* BLOQUEO DE QR:
+   El mismo QR no puede volver a procesarse mientras siga visible.
+   Un QR DIFERENTE sí puede entrar inmediatamente. */
+let lockedQr=null;
+let qrLastSeen=0;
 
-const SHEET_CONFIG = "CONFIG";
+function fmtParts(d=new Date()){const p=new Intl.DateTimeFormat("en-US",{timeZone:TZ,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).formatToParts(d),o={};for(const x of p)if(x.type!=="literal")o[x.type]=x.value;return o}
+function dateNow(){let p=fmtParts();return `${p.year}-${p.month}-${p.day}`}function timeNow(){let p=fmtParts();return `${p.hour}:${p.minute}:${p.second}`}
+function mins(t){let [h,m]=t.split(":").map(Number);return h*60+m}function all(){try{return JSON.parse(localStorage.getItem(STORE)||"[]")}catch{return[]}}function save(a){localStorage.setItem(STORE,JSON.stringify(a))}
+async function sha256Hex(value){
+ const data=new TextEncoder().encode(value);
+ const digest=await crypto.subtle.digest("SHA-256",data);
+ return Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+async function empToken(t){
+ const h=await sha256Hex(String(t||"").trim());
+ return EMPLOYEES.find(e=>e.hash===h&&e.active);
+}function day(eid){return all().filter(x=>x.empId===eid&&x.date===dateNow()).sort((a,b)=>a.ts-b.ts)}
+function secOfTime(t){let p=String(t||"00:00:00").split(":").map(Number);return (p[0]||0)*3600+(p[1]||0)*60+(p[2]||0)}
+function next(eid,centralState=null){
+  const local=day(eid).filter(x=>["ENTRADA","SALIDA","REGRESO"].includes(x.type))
+    .map(x=>({type:x.type,time:x.time,source:"LOCAL"}));
+  const central=(centralState&&Array.isArray(centralState.events)?centralState.events:[])
+    .filter(x=>["ENTRADA","SALIDA","REGRESO"].includes(x.type))
+    .map(x=>({type:x.type,time:x.time,source:"CENTRAL"}));
 
-const SHEET_REPORTE = "REPORTE_SEMANAL";
-const SHEET_INCIDENCIAS = "INCIDENCIAS";
-
-
-
-const EMPLEADOS = [
-
-  { id:"OF-001", nombre:"BALAREZO/SUAREZ, LORENA", area:"VENTAS", entrada:"08:00", tolerancia:10, salida:"17:30", comidaMin:60, comidaAplica:true, activo:true, hash:"c5f2c144509be5e38473806495c21767fba28dfff3661b1607b5d5d135055218" },
-
-  { id:"OF-002", nombre:"CHAVEZ/DOMINGUEZ, SANJUANA", area:"LIMPIEZA", entrada:"08:00", tolerancia:10, salida:"15:00", comidaMin:0, comidaAplica:false, activo:true, hash:"1b89dc2b7adec4b267880d378b979e4e011438de9bbdc84384b7f06b659d9e10" },
-
-  { id:"OF-003", nombre:"DELGADO/AGUILAR, JESUS", area:"VENTAS", entrada:"08:00", tolerancia:10, salida:"17:30", comidaMin:60, comidaAplica:true, activo:true, hash:"3c5d92ba5622d13a5cbd237d3231abe2bf75f161445e1545978beb45a607faea" },
-
-  { id:"OF-004", nombre:"GARCIA/MORENO, JUAN ANGEL", area:"VENTAS", entrada:"08:00", tolerancia:10, salida:"17:30", comidaMin:60, comidaAplica:true, activo:true, hash:"446b29376da21d0c1d03777894b6eab1693820b6b63e86e1ccc352e272ae1df5" },
-
-  { id:"OF-005", nombre:"MORALES/HERNANDEZ, ERIKA SARAHI", area:"VENTAS", entrada:"08:00", tolerancia:10, salida:"17:30", comidaMin:60, comidaAplica:true, activo:true, hash:"a037cf4a8e3b1d1ccb175514f57a449d5aa3e754afb764cb142ed57b704959c0" },
-
-  { id:"OF-006", nombre:"MORALES/LARA, ROCIO ISABEL", area:"AUX CONTABLE", entrada:"08:00", tolerancia:10, salida:"17:30", comidaMin:60, comidaAplica:true, activo:true, hash:"da2013932409ac0c4d3d7998ef5b1c4eed3a71d84f8d3d1351b93613900641c2" },
-
-  { id:"OF-007", nombre:"OYARZABAL/VARELA, JESUS MANUEL", area:"VENTAS", entrada:"08:00", tolerancia:10, salida:"17:30", comidaMin:60, comidaAplica:true, activo:true, hash:"3a0fbcb6525acbeb55effd1c5d8ac18e949be424e9c2c84eb77604180fd32ead" },
-
-  { id:"OF-008", nombre:"RANGEL/CARDONA, LUIS ALBERTO", area:"VENTAS", entrada:"08:00", tolerancia:10, salida:"17:30", comidaMin:60, comidaAplica:true, activo:true, hash:"989cf226f4aa7ddfdc2d435af2aa8d0987f6b011935d0c279bc4980722d8f7a9" },
-
-  { id:"OF-009", nombre:"SANTACRUZ/AYALA, GRACIELA", area:"AUX CONTABLE", entrada:"08:00", tolerancia:10, salida:"17:30", comidaMin:60, comidaAplica:true, activo:true, hash:"aae8401ddf0a2a4febc3bf03d59391b4694ec85d72c3681c65140671ea608e99" },
-
-  { id:"OF-010", nombre:"VELEZ/HERNANDEZ, OCTAVIO ADOLFO", area:"VENTAS", entrada:"08:00", tolerancia:10, salida:"17:30", comidaMin:60, comidaAplica:true, activo:true, hash:"25869f26f292757d5f153975ba889cc35e367a2a2ba7162e3aa2c38c397ef96c" }
-
-];
-
-
-
-function setupCompleto() {
-
-  setupHojas_();
-
-  actualizarDashboard();
-
-  instalarTriggerViernes_();
-
-  instalarTriggerDiario_();
-
+  const merged=[...central,...local].sort((a,b)=>secOfTime(a.time)-secOfTime(b.time));
+  if(!merged.length)return "ENTRADA";
+  return merged[merged.length-1].type==="SALIDA"?"REGRESO":"SALIDA";
+}
+function dayOfWeekFromDate(dateStr){
+  const [y,m,d]=String(dateStr).split("-").map(Number);
+  return new Date(Date.UTC(y,m-1,d)).getUTCDay();
+}
+function scheduledEntryMinutes(dateStr=dateNow()){
+  // Lunes a viernes 08:00. Sábado 09:00.
+  return dayOfWeekFromDate(dateStr)===6?540:480;
+}
+function scheduledEntryLabel(dateStr=dateNow()){
+  return scheduledEntryMinutes(dateStr)===540?"09:00":"08:00";
+}
+function pattern(eid){
+  let a=all().filter(x=>x.empId===eid&&x.type==="ENTRADA").sort((a,b)=>b.ts-a.ts),seen=new Set(),d=[];
+  for(const x of a){if(!seen.has(x.date)){seen.add(x.date);d.push(x);if(d.length===5)break}}
+  return{total:d.length,late:d.filter(x=>mins(x.time)>scheduledEntryMinutes(x.date)).length};
 }
 
-
-
-function setupHojas_() {
-
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-
-  ss.setSpreadsheetTimeZone(TZ);
-
-
-
-  const mov = getOrCreateSheet_(ss, SHEET_MOVIMIENTOS);
-
-  const emp = getOrCreateSheet_(ss, SHEET_EMPLEADOS);
-
-  const dash = getOrCreateSheet_(ss, SHEET_DASHBOARD);
-
-  const config = getOrCreateSheet_(ss, SHEET_CONFIG);
-
-  const rep = getOrCreateSheet_(ss, SHEET_REPORTE);
-  const inc = getOrCreateSheet_(ss, SHEET_INCIDENCIAS);
-
-
-
-  const movHeaders = [
-
-    "EVENTO_ID","FECHA","HORA","EMPLEADO_ID","EMPLEADO","AREA",
-
-    "MOVIMIENTO","NOTA","CAPTURADO_MS","RECIBIDO_EN_SERVIDOR","ORIGEN"
-
-  ];
-
-
-
-  if (mov.getLastRow() === 0 || mov.getRange(1,1).getValue() === "") {
-
-    mov.getRange(1,1,1,movHeaders.length).setValues([movHeaders]);
-
-  }
-
-
-
-  mov.setFrozenRows(1);
-
-  formatHeader_(mov.getRange(1,1,1,movHeaders.length));
-
-
-
-  const empHeaders = [
-
-    "ID","EMPLEADO","AREA","ENTRADA","TOLERANCIA_MIN","SALIDA",
-
-    "COMIDA_MIN","COMIDA_APLICA","ACTIVO","QR_HASH"
-
-  ];
-
-
-
-  emp.clearContents();
-
-  emp.getRange(1,1,1,empHeaders.length).setValues([empHeaders]);
-
-  emp.getRange(2,1,EMPLEADOS.length,empHeaders.length).setValues(
-
-    EMPLEADOS.map(e => [
-
-      e.id,
-
-      e.nombre,
-
-      e.area,
-
-      e.entrada,
-
-      e.tolerancia,
-
-      e.salida,
-
-      e.comidaMin,
-
-      e.comidaAplica ? "SI" : "NO",
-
-      e.activo ? "SI" : "NO",
-
-      e.hash
-
-    ])
-
-  );
-
-
-
-  emp.setFrozenRows(1);
-
-  formatHeader_(emp.getRange(1,1,1,empHeaders.length));
-
-
-
-  const emailSemanal = String(config.getRange("B2").getValue() || "").trim();
-
-  const emailDiario = String(config.getRange("B8").getValue() || "").trim();
-
-
-
-  config.clear();
-
-  config.getRange("A1:B11").setValues([
-
-    ["CONFIGURACIÓN ASISTENCIA ITESA",""],
-
-    ["Correo destino reporte viernes",emailSemanal],
-
-    ["Día de envío","VIERNES"],
-
-    ["Hora objetivo","09:00"],
-
-    ["Zona horaria",TZ],
-
-    ["Estado correo automático",emailSemanal ? "ACTIVO" : "PENDIENTE CORREO DESTINO"],
-
-    ["Nota","El viernes a las 9 AM se reporta lunes-jueves completos y la llegada del viernes al corte."],
-
-    ["Correo diario dirección",emailDiario],
-
-    ["Hora reporte diario","08:20"],
-
-    ["Días reporte diario","LUNES A VIERNES"],
-
-    ["Estado reporte diario",emailDiario ? "ACTIVO" : "PENDIENTE CORREO DIRECCIÓN"]
-
-  ]);
-
-
-
-  formatTitle_(config.getRange("A1:B1"));
-
-  config.autoResizeColumns(1,2);
-
-
-
-  rep.getRange("A1:I1").breakApart();
-  rep.clear();
-  rep.getRange("A1:G2").setValues([
-    ["REPORTE SEMANAL - ASISTENCIA ITESA","","","","","",""],
-    ["EMPLEADO","LUNES","MARTES","MIÉRCOLES","JUEVES","VIERNES 9AM","RESULTADO PARA NÓMINA"]
-  ]);
-
-  formatTitle_(rep.getRange("A1:G1"));
-  formatHeader_(rep.getRange("A2:G2"));
-  rep.setFrozenRows(2);
-
-
-
-  dash.clear();
-
-}
-
-
-
-function doGet(e) {
-
-  const p = (e && e.parameter) ? e.parameter : {};
-
-  const action = String(p.action || "health").toLowerCase();
-
-
-
-  if (action === "verify") {
-
-    const eventId = String(p.eventId || "").trim();
-
-    const employeeId = String(p.employeeId || "").trim();
-
-    const type = String(p.type || "").trim();
-
-    const capturedAt = Number(p.capturedAt || 0);
-
-
-
-    if (!eventId || !employeeId || !type || !capturedAt) {
-
-      return apiResponse_(e,{
-
-        ok:false,
-
-        error:"VERIFY_DATOS_INCOMPLETOS"
-
-      });
-
-    }
-
-
-
-    const result = verifyMovement_(
-
-      eventId,
-
-      employeeId,
-
-      type,
-
-      capturedAt
-
-    );
-
-
-
-    return apiResponse_(e,{
-
-      ok:true,
-
-      action:"verify",
-
-      found:result.found,
-
-      match:result.match || "",
-
-      eventId:eventId
-
-    });
-
-  }
-
-
-
-  if (action === "state") {
-
-    const employeeId = String(p.employeeId || "").trim();
-
-
-
-    const date = String(
-
-      p.date ||
-
-      Utilities.formatDate(new Date(),TZ,"yyyy-MM-dd")
-
-    ).trim();
-
-
-
-    if (!employeeId) {
-
-      return apiResponse_(e,{
-
-        ok:false,
-
-        error:"STATE_EMPLEADO_REQUERIDO"
-
-      });
-
-    }
-
-
-
-    const events = centralEventsForEmployee_(
-
-      employeeId,
-
-      date
-
-    );
-
-
-
-    return apiResponse_(e,{
-
-      ok:true,
-
-      action:"state",
-
-      employeeId:employeeId,
-
-      date:date,
-
-      events:events
-
-    });
-
-  }
-
-
-
-  return apiResponse_(e,{
-
-    ok:true,
-
-    action:"health",
-
-    servicio:"ITESA ASISTENCIA OFICINA",
-
-    fechaServidor:Utilities.formatDate(
-
-      new Date(),
-
-      TZ,
-
-      "yyyy-MM-dd HH:mm:ss"
-
-    )
-
+function wait(ms){return new Promise(r=>setTimeout(r,ms))}
+function centralJsonp(params={},timeoutMs=3500){
+  return new Promise((resolve,reject)=>{
+    const cb="__itesa_cb_"+Date.now()+"_"+Math.random().toString(36).slice(2);
+    const s=document.createElement("script");
+    let done=false;
+    const cleanup=()=>{
+      try{delete window[cb]}catch(_){window[cb]=undefined}
+      try{s.remove()}catch(_){}
+    };
+    const timer=setTimeout(()=>{
+      if(done)return;
+      done=true;cleanup();reject(new Error("CENTRAL_TIMEOUT"));
+    },timeoutMs);
+
+    window[cb]=(data)=>{
+      if(done)return;
+      done=true;clearTimeout(timer);cleanup();
+      centralReachable=true;centralFailCount=0;lastCentralOk=Date.now();setSyncStatus();
+      resolve(data);
+    };
+
+    s.onerror=()=>{
+      if(done)return;
+      done=true;clearTimeout(timer);cleanup();
+      centralReachable=false;setSyncStatus();
+      reject(new Error("CENTRAL_ERROR"));
+    };
+
+    const q=new URLSearchParams({...params,callback:cb,_:Date.now()});
+    s.src=WEB_APP_URL+"?"+q.toString();
+    document.head.appendChild(s);
   });
+}
+async function verifyMovement(rec){
+  try{
+    const data=await centralJsonp({
+      action:"verify",
+      eventId:rec.id,
+      employeeId:rec.empId,
+      type:rec.type,
+      capturedAt:String(rec.ts)
+    },3500);
+    return !!(data&&data.ok&&data.found);
+  }catch(_){return false}
+}
+async function getCentralState(empId,date=dateNow()){
+  try{
+    const data=await centralJsonp({action:"state",employeeId:empId,date},3500);
+    return data&&data.ok?data:null;
+  }catch(_){return null}
+}
+async function pingCentral(){
+  if(!navigator.onLine){
+    centralReachable=false;
+    centralFailCount=0;
+    setSyncStatus();
+    return false;
+  }
 
+  try{
+    const data=await centralJsonp({action:"health"},3000);
+    centralReachable=!!(data&&data.ok);
+    if(centralReachable){
+      centralFailCount=0;
+      lastCentralOk=Date.now();
+    }else{
+      centralFailCount++;
+    }
+  }catch(_){
+    centralReachable=false;
+    centralFailCount++;
+  }
+
+  setSyncStatus();
+  return centralReachable;
 }
 
+function hideResult(){
+  if(resultTimer){
+    clearTimeout(resultTimer);
+    resultTimer=null;
+  }
+  $("result").className="result";
+}
 
+function setReadyMessage(){
+  if(lockedQr){
+    $("msg").textContent="✓ QR LEÍDO · RETIRA TU CÓDIGO";
+  }else if(queueRunning||scanQueue.length){
+    $("msg").textContent="LISTO · SIGUIENTE QR";
+  }else{
+    $("msg").textContent="LISTO · MUESTRA TU QR";
+  }
+}
 
-function doPost(e) {
+function pop(kind,e,m,t,note,syncText=""){
+  const canUseFullScreen=!lockedQr&&scanQueue.length===0;
 
-  const lock = LockService.getScriptLock();
+  try{navigator.vibrate?.([90,70,90])}catch(_){}
 
+  if(!canUseFullScreen){
+    hideResult();
+    $("msg").textContent=`✓ ${m} · ${t} · SIGUIENTE QR`;
+    setTimeout(()=>setReadyMessage(),1200);
+    return;
+  }
 
+  $("result").className=`result show ${kind}`;
+  $("rName").textContent=e;
+  $("rMove").textContent=m;
+  $("rTime").textContent=t;
+  $("rSub").textContent=note;
+  $("rSync").textContent=syncText;
 
-  try {
+  if(resultTimer)clearTimeout(resultTimer);
+  resultTimer=setTimeout(()=>{
+    $("result").className="result";
+    resultTimer=null;
+    setReadyMessage();
+  },1800);
+}
 
-    lock.waitLock(5000);
+async function acceptQr(raw){
+  const rawToken=String(raw||"").trim();
+  const capturedAt=Date.now();
+  const capturedDate=dateNow();
+  const capturedTime=timeNow();
 
+  hideResult();
+  $("msg").textContent="✓ QR LEÍDO · RETIRA TU CÓDIGO";
+  try{navigator.vibrate?.(55)}catch(_){}
 
+  try{
+    const e=await empToken(rawToken);
 
-    const data = JSON.parse(
-
-      (e && e.postData && e.postData.contents) || "{}"
-
-    );
-
-
-
-    if (
-
-      !data.eventId ||
-
-      !data.token ||
-
-      !data.capturedAt ||
-
-      !data.type
-
-    ) {
-
-      return jsonResponse_({
-
-        ok:false,
-
-        error:"DATOS_INCOMPLETOS"
-
-      });
-
+    if(!e){
+      pop("bad","QR NO VÁLIDO","",capturedTime,"Contacta a administración");
+      return;
     }
 
+    $("msg").textContent=`✓ QR LEÍDO · ${e.name} · RETIRA TU CÓDIGO`;
 
+    scanQueue.push({
+      rawToken,
+      employee:e,
+      ts:capturedAt,
+      date:capturedDate,
+      time:capturedTime
+    });
+    scanQueue.sort((a,b)=>a.ts-b.ts);
 
-    const qrHash = sha256Hex_(
+    processScanQueue();
+  }catch(err){
+    console.error(err);
+    pop("bad","ERROR DE LECTURA","",capturedTime,"No se pudo validar el QR. Intenta de nuevo.");
+  }
+}
 
-      String(data.token).trim()
+async function processScanQueue(){
+  if(queueRunning)return;
+  queueRunning=true;
 
-    );
+  try{
+    while(scanQueue.length){
+      const item=scanQueue.shift();
+      const e=item.employee;
+      const rawToken=item.rawToken;
+      const now=item.ts;
+      const t=item.time;
 
+      let a=all();
+      const last=a
+        .filter(x=>x.empId===e.id)
+        .sort((x,y)=>y.ts-x.ts)[0];
 
-
-    const empleado = EMPLEADOS.find(
-
-      x => x.activo && x.hash === qrHash
-
-    );
-
-
-
-    if (!empleado) {
-
-      return jsonResponse_({
-
-        ok:false,
-
-        error:"QR_NO_VALIDO"
-
-      });
-
-    }
-
-
-
-    const ss = SpreadsheetApp.openById(
-
-      SPREADSHEET_ID
-
-    );
-
-
-
-    const mov = ss.getSheetByName(
-
-      SHEET_MOVIMIENTOS
-
-    );
-
-
-
-    if (!mov) {
-
-      return jsonResponse_({
-
-        ok:false,
-
-        error:"HOJA_MOVIMIENTOS_NO_EXISTE"
-
-      });
-
-    }
-
-
-
-    if (mov.getLastRow() > 1) {
-
-      const finder = mov
-
-        .getRange(
-
-          2,
-
-          1,
-
-          mov.getLastRow() - 1,
-
-          1
-
-        )
-
-        .createTextFinder(
-
-          String(data.eventId)
-
-        )
-
-        .matchEntireCell(true)
-
-        .findNext();
-
-
-
-      if (finder) {
-
-        return jsonResponse_({
-
-          ok:true,
-
-          duplicate:true,
-
-          match:"EVENT_ID"
-
-        });
-
+      if(last&&now-last.ts<COOLDOWN){
+        pop(
+          "warn",
+          e.name,
+          "REGISTRO YA REALIZADO",
+          last.time,
+          "No se creó un registro duplicado"
+        );
+        continue;
       }
 
-    }
-
-
-
-    const capturedMs = Number(
-
-      data.capturedAt
-
-    );
-
-
-
-    const fechaCaptura = new Date(
-
-      capturedMs
-
-    );
-
-
-
-    const fechaStr = Utilities.formatDate(
-
-      fechaCaptura,
-
-      TZ,
-
-      "yyyy-MM-dd"
-
-    );
-
-
-
-    const horaStr = Utilities.formatDate(
-
-      fechaCaptura,
-
-      TZ,
-
-      "HH:mm:ss"
-
-    );
-
-
-
-    const type = String(
-
-      data.type
-
-    );
-
-
-
-    const equivalent = findEquivalentMovement_(
-
-      mov,
-
-      empleado.id,
-
-      type,
-
-      capturedMs,
-
-      fechaStr,
-
-      horaStr
-
-    );
-
-
-
-    if (equivalent) {
-
-      return jsonResponse_({
-
-        ok:true,
-
-        duplicate:true,
-
-        equivalent:true,
-
-        match:"EQUIVALENTE",
-
-        existingEventId:equivalent
-
-      });
-
-    }
-
-
-
-    /*
-
-      IMPORTANTE:
-
-      FECHA y HORA se escriben como valores
-
-      NUMÉRICOS reales de Google Sheets.
-
-
-
-      Esto permite que DASHBOARD_NOMINAS
-
-      compare correctamente las fechas.
-
-    */
-
-
-
-    const partesFecha = fechaStr
-
-      .split("-")
-
-      .map(Number);
-
-
-
-    const fechaSerial =
-
-      Date.UTC(
-
-        partesFecha[0],
-
-        partesFecha[1] - 1,
-
-        partesFecha[2]
-
-      ) / 86400000 + 25569;
-
-
-
-    const horaSerial =
-
-      timeToSeconds_(horaStr) / 86400;
-
-
-
-    const nuevaFila =
-
-      mov.getLastRow() + 1;
-
-
-
-    mov.getRange(
-
-      nuevaFila,
-
-      1,
-
-      1,
-
-      11
-
-    ).setValues([[
-
-      String(data.eventId),
-
-      fechaSerial,
-
-      horaSerial,
-
-      empleado.id,
-
-      empleado.nombre,
-
-      empleado.area,
-
-      type,
-
-      String(data.note || ""),
-
-      capturedMs,
-
-      new Date(),
-
-      String(
-
-        data.origin ||
-
-        "KIOSCO OFICINA"
-
-      )
-
-    ]]);
-
-
-
-    mov.getRange(
-
-      nuevaFila,
-
-      2
-
-    ).setNumberFormat(
-
-      "yyyy-mm-dd"
-
-    );
-
-
-
-    mov.getRange(
-
-      nuevaFila,
-
-      3
-
-    ).setNumberFormat(
-
-      "hh:mm:ss"
-
-    );
-
-
-
-    return jsonResponse_({
-
-      ok:true,
-
-      duplicate:false,
-
-      empleado:empleado.id
-
-    });
-
-
-
-  } catch (err) {
-
-
-
-    return jsonResponse_({
-
-      ok:false,
-
-      error:String(err)
-
-    });
-
-
-
-  } finally {
-
-
-
-    try {
-
-      lock.releaseLock();
-
-    } catch (_) {}
-
-
-
-  }
-
-}
-
-
-
-function apiResponse_(e,obj) {
-
-  const cb =
-
-    e && e.parameter
-
-      ? String(
-
-          e.parameter.callback || ""
-
-        ).trim()
-
-      : "";
-
-
-
-  if (
-
-    cb &&
-
-    /^[A-Za-z_$][0-9A-Za-z_$]*$/.test(cb)
-
-  ) {
-
-    return ContentService
-
-      .createTextOutput(
-
-        cb +
-
-        "(" +
-
-        JSON.stringify(obj) +
-
-        ");"
-
-      )
-
-      .setMimeType(
-
-        ContentService.MimeType.JAVASCRIPT
-
-      );
-
-  }
-
-
-
-  return jsonResponse_(obj);
-
-}
-
-
-
-function verifyMovement_(
-
-  eventId,
-
-  employeeId,
-
-  type,
-
-  capturedAt
-
-) {
-
-
-
-  const ss =
-
-    SpreadsheetApp.openById(
-
-      SPREADSHEET_ID
-
-    );
-
-
-
-  const mov =
-
-    ss.getSheetByName(
-
-      SHEET_MOVIMIENTOS
-
-    );
-
-
-
-  if (
-
-    !mov ||
-
-    mov.getLastRow() <= 1
-
-  ) {
-
-    return {
-
-      found:false
-
-    };
-
-  }
-
-
-
-  const finder =
-
-    mov
-
-      .getRange(
-
-        2,
-
-        1,
-
-        mov.getLastRow() - 1,
-
-        1
-
-      )
-
-      .createTextFinder(
-
-        String(eventId)
-
-      )
-
-      .matchEntireCell(true)
-
-      .findNext();
-
-
-
-  if (finder) {
-
-    return {
-
-      found:true,
-
-      match:"EVENT_ID"
-
-    };
-
-  }
-
-
-
-  const d =
-
-    new Date(
-
-      Number(capturedAt)
-
-    );
-
-
-
-  const dateStr =
-
-    Utilities.formatDate(
-
-      d,
-
-      TZ,
-
-      "yyyy-MM-dd"
-
-    );
-
-
-
-  const timeStr =
-
-    Utilities.formatDate(
-
-      d,
-
-      TZ,
-
-      "HH:mm:ss"
-
-    );
-
-
-
-  const equivalent =
-
-    findEquivalentMovement_(
-
-      mov,
-
-      String(employeeId),
-
-      String(type),
-
-      Number(capturedAt),
-
-      dateStr,
-
-      timeStr
-
-    );
-
-
-
-  return equivalent
-
-    ? {
-
-        found:true,
-
-        match:"EQUIVALENTE"
-
+      // Consulta Central para mantener la secuencia correcta, pero esto ya no
+      // bloquea el lector: otros QR pueden seguir entrando a la cola.
+      const centralState=navigator.onLine
+        ?await getCentralState(e.id,item.date)
+        :null;
+
+      let type=next(e.id,centralState),
+          note="",
+          currentEntryStatus="";
+
+      if(type==="ENTRADA"){
+        const scheduled=scheduledEntryMinutes(item.date);
+        const scheduledLabel=scheduledEntryLabel(item.date);
+        const d=mins(t)-scheduled;
+        const tolerance=Number(e.tolerance||0);
+
+        if(d>tolerance){
+          note=`RETARDO: ${d-tolerance} min fuera de tolerancia · entrada ${scheduledLabel}`;
+          currentEntryStatus="RETARDO";
+        }else if(d>0){
+          note=`LLEGADA A TIEMPO · dentro de tolerancia · ${d} min después de las ${scheduledLabel}`;
+          currentEntryStatus="A_TIEMPO";
+        }else if(d===0){
+          note=`LLEGADA A TIEMPO · ${scheduledLabel}`;
+          currentEntryStatus="A_TIEMPO";
+        }else{
+          note=`LLEGADA A TIEMPO · ${Math.abs(d)} min antes de las ${scheduledLabel}`;
+          currentEntryStatus="A_TIEMPO";
+        }
       }
 
-    : {
+      if(type==="REGRESO"&&e.lunchEligible){
+        const dm=all()
+          .filter(x=>x.empId===e.id&&x.date===item.date)
+          .sort((x,y)=>x.ts-y.ts);
+        const out=[...dm].reverse().find(x=>x.type==="SALIDA");
 
-        found:false
+        if(out){
+          const dep=mins(out.time);
+          const dur=Math.round((now-out.ts)/60000);
+          if(dep>=750&&dep<=930){
+            note=dur>60
+              ?`COMIDA ${dur} min · EXCESO ${dur-60} min`
+              :`COMIDA ${dur} min`;
+          }
+        }
+      }
 
+      const eventId=crypto.randomUUID
+        ?crypto.randomUUID()
+        :`${now}-${Math.random().toString(16).slice(2)}`;
+
+      let rec={
+        id:eventId,
+        empId:e.id,
+        name:e.name,
+        area:e.area,
+        date:item.date,
+        time:t,
+        ts:now,
+        type,
+        note,
+        sync:"PENDIENTE",
+        syncToken:rawToken,
+        lastSyncTry:0
       };
 
-}
+      a=all();
+      a.push(rec);
+      save(a);
 
+      if(type==="ENTRADA"){
+        let p=pattern(e.id);
+        if(p.total>=4&&p.late>=4){
+          note+=(note?"\n":"")
+            +`HISTORIAL: ${p.late} de tus últimos ${p.total} días tuvieron llegada después de la hora programada.`;
+          rec.note=note;
+          save(a);
+        }
+      }
 
+      const moveText=
+        type==="ENTRADA"
+          ?"ENTRADA REGISTRADA"
+          :type==="SALIDA"
+            ?"SALIDA REGISTRADA"
+            :"REGRESO REGISTRADO";
 
-function findEquivalentMovement_(
+      const hasCurrentIncident=
+        (type==="ENTRADA"&&currentEntryStatus==="RETARDO")
+        ||note.includes("EXCESO");
 
-  mov,
+      const successKind=
+        hasCurrentIncident
+          ?"warn"
+          :(type==="ENTRADA"
+            ?"entry"
+            :type==="SALIDA"
+              ?"exit"
+              :"return");
 
-  employeeId,
-
-  type,
-
-  capturedMs,
-
-  dateStr,
-
-  timeStr
-
-) {
-
-
-
-  const lastRow =
-
-    mov.getLastRow();
-
-
-
-  if (lastRow <= 1) {
-
-    return "";
-
-  }
-
-
-
-  const values =
-
-    mov.getRange(
-
-      2,
-
-      1,
-
-      lastRow - 1,
-
-      11
-
-    ).getValues();
-
-
-
-  const targetSec =
-
-    timeToSeconds_(
-
-      timeStr
-
-    );
-
-
-
-  for (
-
-    let i = values.length - 1;
-
-    i >= 0;
-
-    i--
-
-  ) {
-
-
-
-    const r = values[i];
-
-
-
-    if (
-
-      String(r[3] || "") !==
-
-      String(employeeId)
-
-    ) continue;
-
-
-
-    if (
-
-      String(r[6] || "") !==
-
-      String(type)
-
-    ) continue;
-
-
-
-    const rowDate =
-
-      normalizeDateCell_(
-
-        r[1]
-
+      // Confirmación al usuario en cuanto queda guardado localmente.
+      // La sincronización con Central sigue detrás y no detiene el lector.
+      pop(
+        successKind,
+        e.name,
+        moveText,
+        t,
+        note||"REGISTRO CORRECTO",
+        navigator.onLine
+          ?"✓ GUARDADO · SINCRONIZANDO CON CENTRAL"
+          :"✓ GUARDADO LOCAL · SE SINCRONIZARÁ AL RECUPERAR INTERNET"
       );
 
+      render();
 
-
-    if (
-
-      rowDate !== dateStr
-
-    ) continue;
-
-
-
-    const rowMs =
-
-      Number(
-
-        r[8] || 0
-
-      );
-
-
-
-    if (
-
-      rowMs &&
-
-      Math.abs(
-
-        rowMs - capturedMs
-
-      ) <= 120000
-
-    ) {
-
-      return String(
-
-        r[0] || ""
-
-      );
-
+      if(navigator.onLine){
+        syncPending(true,e.id).catch(err=>console.warn("Sincronización pendiente",err));
+      }
     }
+  }catch(err){
+    console.error("Error procesando cola QR",err);
+  }finally{
+    queueRunning=false;
+    setReadyMessage();
+  }
+}
+
+function setSyncStatus(){
+  const records=all();
+  const pending=records.filter(x=>x.syncToken&&x.sync!=="CONFIRMADO").length;
+  const online=navigator.onLine;
+  let textValue="";
+  let dotClass="online";
+
+  if(!online){
+    textValue="SIN INTERNET";
+    dotClass="offline";
+  }else if(pending>0){
+    textValue=`EN LÍNEA · CENTRAL · ${pending} PEND`;
+  }else if(centralFailCount>=3){
+    textValue="EN LÍNEA · CENTRAL SIN RESPUESTA";
+    dotClass="offline";
+  }else if(centralReachable&&Date.now()-lastCentralOk<120000){
+    textValue="EN LÍNEA · CENTRAL OK";
+  }else{
+    textValue="EN LÍNEA";
+  }
+
+  $("net").innerHTML=
+    `<span class="statusDot ${dotClass}"></span>`+
+    `<span>${textValue}</span>`;
+}
+
+async function postMovement(rec){
+ if(!navigator.onLine)return "PENDIENTE";
+
+ const payload={
+   eventId:rec.id,
+   token:rec.syncToken,
+   capturedAt:rec.ts,
+   type:rec.type,
+   note:rec.note||"",
+   origin:"KIOSCO OFICINA V5.3"
+ };
+
+ // El POST se hace en modo no-cors para que Android/Chrome no bloquee el envío.
+ // NO se considera exitoso por el simple hecho de "enviar": después se verifica
+ // contra el central por EVENTO_ID o por movimiento equivalente.
+ try{
+   await fetch(WEB_APP_URL,{
+     method:"POST",
+     mode:"no-cors",
+     credentials:"omit",
+     headers:{"Content-Type":"text/plain;charset=utf-8"},
+     body:JSON.stringify(payload)
+   });
+ }catch(e){
+   console.warn("POST al central falló.",e);
+   return "PENDIENTE";
+ }
+
+ // Dar tiempo a Apps Script para escribir y verificar de forma independiente.
+ for(const delay of [650,1100,1800]){
+   await wait(delay);
+   if(await verifyMovement(rec))return "CONFIRMADO";
+ }
+ return "PENDIENTE";
+}
+
+async function syncPending(force=false,onlyEmpId=null){
+ if(syncRunning||!navigator.onLine)return;
+ syncRunning=true;
+ try{
+   let records=all(),changed=false,now=Date.now();
+   for(const rec of records){
+     if(!rec.syncToken)continue;
+     if(rec.sync==="CONFIRMADO")continue;
+     if(onlyEmpId&&rec.empId!==onlyEmpId)continue;
+
+     // V5: reintento automático frecuente. Los registros V4 que quedaron
+     // como ENVIADO también se vuelven a verificar y reenviar hasta confirmar.
+     if(!force && now-(rec.lastSyncTry||0)<15000)continue;
+
+     rec.lastSyncTry=Date.now();
+     rec.sync="PENDIENTE";
+     save(records);
+
+     const status=await postMovement(rec);
+     rec.sync=status;
+     if(status==="CONFIRMADO"){
+       delete rec.syncToken;
+     }
+     changed=true;
+     save(records);
+   }
+   if(changed)save(records);
+ }finally{
+   syncRunning=false;
+   setSyncStatus();
+ }
+}
 
 
+function updateClock(){
+ const p=fmtParts();
+ $("clock").textContent=`${p.hour}:${p.minute}`;
+}
 
-    const rowTime =
+async function enterKioskMode(){
+ try{
+   if(document.documentElement.requestFullscreen && !document.fullscreenElement){
+     await document.documentElement.requestFullscreen();
+   }
+ }catch(e){console.warn("Fullscreen no disponible",e)}
 
-      normalizeTimeCell_(
+ try{
+   if("wakeLock" in navigator){
+     wakeLock=await navigator.wakeLock.request("screen");
+   }
+ }catch(e){console.warn("Wake Lock no disponible",e)}
+}
 
-        r[2]
+async function restoreCameraIfNeeded(){
+ if(document.visibilityState!=="visible")return;
+ updateClock();
+ if(starting)return;
 
+ const liveTrack = stream && stream.getVideoTracks && stream.getVideoTracks()
+   .some(t=>t.readyState==="live");
+
+ if(!liveTrack){
+   scanning=false;
+   try{await start()}catch(e){}
+   return;
+ }
+
+ if(video.srcObject){
+   try{await video.play()}catch(e){
+     if(e?.name!=="AbortError") console.warn(e);
+   }
+ }
+
+ if("wakeLock" in navigator && !wakeLock){
+   try{wakeLock=await navigator.wakeLock.request("screen")}catch(e){}
+ }
+}
+
+function showAdmin(){
+ $("admin").classList.remove("hidden");
+ $("kiosk").classList.add("hidden");
+ render();
+}
+
+function showKiosk(){
+ $("kiosk").classList.remove("hidden");
+ $("admin").classList.add("hidden");
+}
+
+
+async function start(){
+ if(starting)return;
+ starting=true;
+
+ try{
+   $("msg").textContent="INICIANDO KIOSCO…";
+   $("diag").textContent="";
+   await enterKioskMode();
+
+   if(!window.isSecureContext)throw new Error("Se requiere HTTPS");
+   if(!navigator.mediaDevices?.getUserMedia)throw new Error("Cámara no disponible");
+   if(typeof window.jsQR!=="function")throw new Error("Lector QR no cargó");
+
+   const liveTrack = stream && stream.getVideoTracks && stream.getVideoTracks()
+     .some(t=>t.readyState==="live");
+
+   if(!liveTrack){
+     if(stream){
+       try{stream.getTracks().forEach(t=>t.stop())}catch(e){}
+     }
+
+     stream=await navigator.mediaDevices.getUserMedia({
+       video:{
+         facingMode:{ideal:"environment"},
+         width:{ideal:1280},
+         height:{ideal:720}
+       },
+       audio:false
+     });
+
+     video.srcObject=stream;
+   }
+
+   try{
+     await video.play();
+   }catch(e){
+     if(e?.name!=="AbortError") throw e;
+     await new Promise(r=>setTimeout(r,250));
+     if(video.srcObject) {
+       try{await video.play()}catch(err){
+         if(err?.name!=="AbortError") throw err;
+       }
+     }
+   }
+
+   $("activate").style.display="none";
+   $("msg").textContent="LISTO · MUESTRA TU QR";
+   $("diag").textContent="";
+   scanning=true;
+   requestAnimationFrame(loop);
+
+ }catch(e){
+   if(e?.name==="AbortError"){
+     $("diag").textContent="";
+     setTimeout(()=>start(),300);
+   }else{
+     $("msg").textContent="ERROR DE CÁMARA";
+     $("diag").textContent=(e.name?e.name+": ":"")+e.message;
+     $("activate").style.display="block";
+   }
+ }finally{
+   starting=false;
+ }
+}
+function loop(){
+  if(!scanning)return;
+
+  try{
+    if(video.readyState>=2&&video.videoWidth){
+      canvas.width=video.videoWidth;
+      canvas.height=video.videoHeight;
+      ctx.drawImage(video,0,0,canvas.width,canvas.height);
+
+      const im=ctx.getImageData(0,0,canvas.width,canvas.height);
+      const c=window.jsQR(
+        im.data,
+        im.width,
+        im.height,
+        {inversionAttempts:"attemptBoth"}
       );
 
+      const now=Date.now();
 
+      if(c?.data){
+        const qr=String(c.data).trim();
 
-    if (
-
-      rowTime &&
-
-      Math.abs(
-
-        timeToSeconds_(rowTime) -
-
-        targetSec
-
-      ) <= 90
-
-    ) {
-
-      return String(
-
-        r[0] || ""
-
-      );
-
+        if(lockedQr===qr){
+          qrLastSeen=now;
+        }else{
+          // Si aparece un QR diferente, se acepta en ese mismo instante.
+          // No necesita esperar a que termine el registro anterior.
+          lockedQr=qr;
+          qrLastSeen=now;
+          acceptQr(qr);
+        }
+      }else{
+        if(lockedQr&&qrLastSeen&&now-qrLastSeen>=QR_RELEASE_MS){
+          lockedQr=null;
+          qrLastSeen=0;
+          setReadyMessage();
+        }else if(!lockedQr){
+          setReadyMessage();
+        }
+      }
     }
-
+  }catch(e){
+    console.warn(e);
   }
 
-
-
-  return "";
-
+  setTimeout(()=>requestAnimationFrame(loop),180);
 }
 
+function render(){
+ let today=all().filter(x=>x.date===dateNow()).sort((a,b)=>a.ts-b.ts),rows=[],alerts=[],inside=0;
+ $("mReg").textContent=today.length;
+ const nowMin=mins(timeNow());
 
+ for(const e of EMPLOYEES){
+   let a=today.filter(x=>x.empId===e.id);
+   let entry=a.find(x=>x.type==="ENTRADA");
+   let last=a[a.length-1];
+   if(last&&(last.type==="ENTRADA"||last.type==="REGRESO"))inside++;
 
-function centralEventsForEmployee_(
+   let lunchOut=null,lunchBack=null,lunchDuration=null;
+   if(e.lunchEligible){
+     for(let i=0;i<a.length-1;i++){
+       if(a[i].type==="SALIDA"&&a[i+1].type==="REGRESO"){
+         let dep=mins(a[i].time);
+         if(dep>=720&&dep<=960){
+           lunchOut=a[i]; lunchBack=a[i+1];
+           lunchDuration=Math.round((lunchBack.ts-lunchOut.ts)/60000);
+           break;
+         }
+       }
+     }
+   }
 
-  employeeId,
+   // Salida actual/final: una SALIDA que todavía no tenga REGRESO posterior.
+   let finalOut=null;
+   if(last&&last.type==="SALIDA"){
+     const dep=mins(last.time);
+     const looksLikeLunch=e.lunchEligible&&dep>=750&&dep<=930&&nowMin<mins(e.exit);
+     if(!looksLikeLunch) finalOut=last;
+   }
 
-  dateStr
+   let obs=[];
+   if(entry){
+     const scheduled=scheduledEntryMinutes(entry.date);
+     const arrival=mins(entry.time), delta=arrival-scheduled;
+     const tolerance=Number(e.tolerance||0);
+     if(delta>tolerance){
+       let eff=delta-tolerance;
+       obs.push(`RETARDO ${eff} min`);
+       alerts.push(`${e.name}: retardo ${eff} min`);
+     } else if(delta>0){
+       obs.push(`Tolerancia: +${delta} min`);
+     }
+   }
 
-) {
+   if(lunchDuration!==null){
+     if(lunchDuration>60){
+       let excess=lunchDuration-60;
+       obs.push(`EXCESO COMIDA ${excess} min`);
+       alerts.push(`${e.name}: exceso de comida ${excess} min`);
+     }
+   }
 
+   // Patrón: llegar después de la hora programada aunque todavía esté dentro de tolerancia.
+   let p=pattern(e.id);
+   if(p.total>=5 && p.late>=4){
+     obs.push(`PATRÓN ${p.late}/5 después de hora`);
+     alerts.push(`${e.name}: estás llegando después de tu hora programada en ${p.late} de tus últimos 5 días.`);
+   } else if(p.total>=5 && p.late===3){
+     obs.push(`Atención: 3/5 después de hora`);
+   }
 
+   // Solo declarar salida anticipada cuando ya pasó su hora oficial y no hubo regreso.
+   if(finalOut && nowMin>=mins(e.exit) && mins(finalOut.time)<mins(e.exit)){
+     let early=mins(e.exit)-mins(finalOut.time);
+     obs.push(`SALIDA ANTICIPADA ${early} min`);
+     alerts.push(`${e.name}: salida anticipada ${early} min`);
+   }
 
-  const ss =
+   let status="SIN REGISTRO";
+   if(last){
+     if(last.type==="SALIDA"&&e.lunchEligible&&mins(last.time)>=750&&mins(last.time)<=930&&nowMin<mins(e.exit)) status="FUERA / COMIDA";
+     else status=last.type==="SALIDA"?"FUERA":"EN OFICINA";
+   }
 
-    SpreadsheetApp.openById(
+   let lunchOutTxt=e.lunchEligible?(lunchOut?lunchOut.time.slice(0,5):"—"):"NO APLICA";
+   let lunchBackTxt=e.lunchEligible?(lunchBack?lunchBack.time.slice(0,5):"—"):"NO APLICA";
+   let durationTxt=e.lunchEligible?(lunchDuration!==null?`${lunchDuration} min`:"—"):"NO APLICA";
+   let finalTxt=finalOut?finalOut.time.slice(0,5):"—";
 
-      SPREADSHEET_ID
+   rows.push(`<tr>
+     <td>${e.name}<br><span class="small">${e.area}</span></td>
+     <td>${entry?entry.time.slice(0,5):"—"}</td>
+     <td>${lunchOutTxt}</td>
+     <td>${lunchBackTxt}</td>
+     <td>${durationTxt}</td>
+     <td>${finalTxt}</td>
+     <td><span class="pill">${status}</span>${obs.length?`<br><span class="obs">${obs.join(" · ")}</span>`:""}</td>
+   </tr>`);
+ }
 
-    );
+ $("mIn").textContent=inside;
+ $("mAlert").textContent=alerts.length;
+ $("summary").innerHTML=rows.join("");
+ $("alerts").innerHTML=alerts.length?alerts.map(x=>`<div class="alert">${x}</div>`).join(""):"";
+ setSyncStatus();
+}
+function net(){setSyncStatus();if(navigator.onLine){pingCentral();syncPending(true)}}
+$("activate").onclick=()=>start();
+$("syncNow").onclick=async()=>{await pingCentral();await syncPending(true);render();};
 
-
-
-  const mov =
-
-    ss.getSheetByName(
-
-      SHEET_MOVIMIENTOS
-
-    );
-
-
-
-  if (
-
-    !mov ||
-
-    mov.getLastRow() <= 1
-
-  ) {
-
-    return [];
-
+$("clearTests").onclick=()=>{
+  if(confirm("¿Reiniciar el estado LOCAL de HOY en este kiosco? Se conservarán los días anteriores y no se modifica el registro central.")){
+    const keep=all().filter(x=>x.date!==dateNow());
+    save(keep);
+    render();
+    alert("Estado local de hoy reiniciado. Los días anteriores se conservaron.");
   }
+};
 
+$("backKiosk").onclick=showKiosk;
 
+/* Acceso discreto al control: mantener presionado ITESA por 3 segundos. */
+$("brandHold").addEventListener("pointerdown",()=>{
+  clearTimeout(holdTimer);
+  holdTimer=setTimeout(showAdmin,3000);
+});
+["pointerup","pointercancel","pointerleave"].forEach(ev=>{
+  $("brandHold").addEventListener(ev,()=>clearTimeout(holdTimer));
+});
 
-  const values =
+window.addEventListener("online",net);
+window.addEventListener("offline",net);
+document.addEventListener("visibilitychange",restoreCameraIfNeeded);
+window.addEventListener("pageshow",restoreCameraIfNeeded);
 
-    mov.getRange(
+updateClock();
+setInterval(updateClock,1000);
+net();
+render();
 
-      2,
-
-      1,
-
-      mov.getLastRow() - 1,
-
-      11
-
-    ).getValues();
-
-
-
-  const allowed = {
-
-    "ENTRADA":true,
-
-    "SALIDA":true,
-
-    "REGRESO":true
-
-  };
-
-
-
-  return values
-
-    .filter(r =>
-
-      String(r[3] || "") ===
-
-        String(employeeId) &&
-
-      normalizeDateCell_(r[1]) ===
-
-        String(dateStr) &&
-
-      allowed[
-
-        String(r[6] || "")
-
-      ]
-
-    )
-
-    .map(r => ({
-
-      eventId:
-
-        String(r[0] || ""),
-
-      type:
-
-        String(r[6] || ""),
-
-      time:
-
-        normalizeTimeCell_(r[2])
-
-    }))
-
-    .filter(
-
-      x => x.time
-
-    )
-
-    .sort(
-
-      (a,b) =>
-
-        timeToSeconds_(a.time) -
-
-        timeToSeconds_(b.time)
-
-    );
-
-}
-
-
-
-function normalizeDateCell_(v) {
-
-
-
-  if (
-
-    v instanceof Date &&
-
-    !isNaN(v)
-
-  ) {
-
-    return Utilities.formatDate(
-
-      v,
-
-      TZ,
-
-      "yyyy-MM-dd"
-
-    );
-
+/* Arranque automático del lector.
+   Si Chrome ya tiene permiso de cámara, no hay que tocar ningún botón.
+   Si Android/Chrome exige interacción o vuelve a pedir permiso, el botón queda como respaldo. */
+setTimeout(async()=>{
+  if(document.visibilityState==="visible"){
+    try{await start()}catch(e){}
   }
-
-
-
-  if (
-
-    typeof v === "number" &&
-
-    isFinite(v)
-
-  ) {
-
-
-
-    const ms =
-
-      Math.round(
-
-        (v - 25569) *
-
-        86400000
-
-      );
-
-
-
-    return Utilities.formatDate(
-
-      new Date(ms),
-
-      "UTC",
-
-      "yyyy-MM-dd"
-
-    );
-
-  }
-
-
-
-  const s =
-
-    String(v || "").trim();
-
-
-
-  const m =
-
-    s.match(
-
-      /^(\d{4})-(\d{2})-(\d{2})$/
-
-    );
-
-
-
-  if (m) {
-
-    return s;
-
-  }
-
-
-
-  const d =
-
-    new Date(s);
-
-
-
-  if (!isNaN(d)) {
-
-    return Utilities.formatDate(
-
-      d,
-
-      TZ,
-
-      "yyyy-MM-dd"
-
-    );
-
-  }
-
-
-
-  return s;
-
-}
-
-
-
-function normalizeTimeCell_(v) {
-
-
-
-  if (
-
-    v instanceof Date &&
-
-    !isNaN(v)
-
-  ) {
-
-    return Utilities.formatDate(
-
-      v,
-
-      TZ,
-
-      "HH:mm:ss"
-
-    );
-
-  }
-
-
-
-  if (
-
-    typeof v === "number" &&
-
-    isFinite(v)
-
-  ) {
-
-
-
-    const total =
-
-      Math.round(
-
-        (v % 1) *
-
-        86400
-
-      );
-
-
-
-    const h =
-
-      Math.floor(
-
-        total / 3600
-
-      ) % 24;
-
-
-
-    const m =
-
-      Math.floor(
-
-        (total % 3600) /
-
-        60
-
-      );
-
-
-
-    const s =
-
-      total % 60;
-
-
-
-    return (
-
-      ("0" + h).slice(-2) +
-
-      ":" +
-
-      ("0" + m).slice(-2) +
-
-      ":" +
-
-      ("0" + s).slice(-2)
-
-    );
-
-  }
-
-
-
-  const s =
-
-    String(v || "").trim();
-
-
-
-  const m =
-
-    s.match(
-
-      /^(\d{1,2}):(\d{2})(?::(\d{2}))?$/
-
-    );
-
-
-
-  if (!m) {
-
-    return s;
-
-  }
-
-
-
-  return (
-
-    ("0" + m[1]).slice(-2) +
-
-    ":" +
-
-    m[2] +
-
-    ":" +
-
-    ("0" + (m[3] || "00")).slice(-2)
-
-  );
-
-}
-
-
-
-function timeToSeconds_(time) {
-
-
-
-  const p =
-
-    String(
-
-      time || "00:00:00"
-
-    )
-
-      .split(":")
-
-      .map(Number);
-
-
-
-  return (
-
-    (p[0] || 0) * 3600 +
-
-    (p[1] || 0) * 60 +
-
-    (p[2] || 0)
-
-  );
-
-}
-
-
-
-function actualizarDashboard() {
-
-
-
-  const ss =
-
-    SpreadsheetApp.openById(
-
-      SPREADSHEET_ID
-
-    );
-
-
-
-  const sh =
-
-    getOrCreateSheet_(
-
-      ss,
-
-      SHEET_DASHBOARD
-
-    );
-
-
-
-  const movimientos =
-
-    leerMovimientos_();
-
-
-
-  const hoy =
-
-    Utilities.formatDate(
-
-      new Date(),
-
-      TZ,
-
-      "yyyy-MM-dd"
-
-    );
-
-
-
-  const ahoraMin =
-
-    timeToMin_(
-
-      Utilities.formatDate(
-
-        new Date(),
-
-        TZ,
-
-        "HH:mm:ss"
-
-      )
-
-    );
-
-
-
-  const rows = [];
-
-
-
-  let conEntrada = 0;
-
-  let retardos = 0;
-
-  let dentroAhora = 0;
-
-  let movimientosHoy = 0;
-
-
-
-  EMPLEADOS
-
-    .filter(
-
-      e => e.activo
-
-    )
-
-    .forEach(emp => {
-
-
-
-      const recs =
-
-        movimientos
-
-          .filter(
-
-            r =>
-
-              r.fecha === hoy &&
-
-              r.empleadoId === emp.id
-
-          )
-
-          .sort(
-
-            (a,b) =>
-
-              a.ms - b.ms
-
-          );
-
-
-
-      movimientosHoy +=
-
-        recs.length;
-
-
-
-      const entrada =
-
-        recs.find(
-
-          r =>
-
-            r.movimiento ===
-
-            "ENTRADA"
-
-        );
-
-
-
-      if (entrada) {
-
-        conEntrada++;
-
-      }
-
-
-
-      const last =
-
-        recs.length
-
-          ? recs[
-
-              recs.length - 1
-
-            ]
-
-          : null;
-
-
-
-      if (
-
-        last &&
-
-        (
-
-          last.movimiento ===
-
-            "ENTRADA" ||
-
-          last.movimiento ===
-
-            "REGRESO"
-
-        )
-
-      ) {
-
-        dentroAhora++;
-
-      }
-
-
-
-      const lunch =
-
-        detectarComida_(
-
-          emp,
-
-          recs
-
-        );
-
-
-
-      let salidaFinal = "";
-
-
-
-      if (
-
-        last &&
-
-        last.movimiento ===
-
-          "SALIDA"
-
-      ) {
-
-
-
-        const dep =
-
-          timeToMin_(
-
-            last.hora
-
-          );
-
-
-
-        const pareceComida =
-
-          emp.comidaAplica &&
-
-          dep >= 750 &&
-
-          dep <= 930 &&
-
-          ahoraMin <
-
-            timeToMin_(
-
-              emp.salida
-
-            );
-
-
-
-        if (!pareceComida) {
-
-          salidaFinal =
-
-            last.hora.slice(
-
-              0,
-
-              5
-
-            );
-
-        }
-
-      }
-
-
-
-      let estado =
-
-        "SIN REGISTRO";
-
-
-
-      if (last) {
-
-
-
-        if (
-
-          last.movimiento ===
-
-            "SALIDA" &&
-
-          emp.comidaAplica &&
-
-          timeToMin_(
-
-            last.hora
-
-          ) >= 750 &&
-
-          timeToMin_(
-
-            last.hora
-
-          ) <= 930 &&
-
-          ahoraMin <
-
-            timeToMin_(
-
-              emp.salida
-
-            )
-
-        ) {
-
-
-
-          estado =
-
-            "FUERA / COMIDA";
-
-
-
-        } else {
-
-
-
-          estado =
-
-            last.movimiento ===
-
-              "SALIDA"
-
-              ? "FUERA"
-
-              : "EN OFICINA";
-
-
-
-        }
-
-      }
-
-
-
-      const obs = [];
-
-
-
-      if (entrada) {
-
-
-
-        const delta =
-
-          timeToMin_(
-
-            entrada.hora
-
-          ) - 480;
-
-
-
-        if (
-
-          delta >
-
-          emp.tolerancia
-
-        ) {
-
-
-
-          const ret =
-
-            delta -
-
-            emp.tolerancia;
-
-
-
-          retardos++;
-
-
-
-          obs.push(
-
-            "RETARDO " +
-
-            ret +
-
-            " min"
-
-          );
-
-
-
-        } else if (
-
-          delta > 0
-
-        ) {
-
-
-
-          obs.push(
-
-            "TOL +" +
-
-            delta +
-
-            " min"
-
-          );
-
-        }
-
-      }
-
-
-
-      if (
-
-        lunch.duracion !==
-
-          null &&
-
-        lunch.duracion >
-
-          emp.comidaMin
-
-      ) {
-
-
-
-        obs.push(
-
-          "EXCESO COMIDA " +
-
-          (
-
-            lunch.duracion -
-
-            emp.comidaMin
-
-          ) +
-
-          " min"
-
-        );
-
-      }
-
-
-
-      const patron =
-
-        patronLlegadas_(
-
-          emp.id,
-
-          movimientos
-
-        );
-
-
-
-      if (
-
-        patron.total >= 5 &&
-
-        patron.despues8 >= 4
-
-      ) {
-
-
-
-        obs.push(
-
-          "PATRÓN " +
-
-          patron.despues8 +
-
-          "/5 después de 8:00"
-
-        );
-
-      }
-
-
-
-      if (
-
-        salidaFinal &&
-
-        ahoraMin >=
-
-          timeToMin_(
-
-            emp.salida
-
-          ) &&
-
-        timeToMin_(
-
-          salidaFinal
-
-        ) <
-
-          timeToMin_(
-
-            emp.salida
-
-          )
-
-      ) {
-
-
-
-        obs.push(
-
-          "SALIDA ANTICIPADA " +
-
-          (
-
-            timeToMin_(
-
-              emp.salida
-
-            ) -
-
-            timeToMin_(
-
-              salidaFinal
-
-            )
-
-          ) +
-
-          " min"
-
-        );
-
-      }
-
-
-
-      rows.push([
-
-        emp.id,
-
-        emp.nombre,
-
-        emp.area,
-
-        entrada
-
-          ? entrada.hora.slice(
-
-              0,
-
-              5
-
-            )
-
-          : "",
-
-        lunch.salida,
-
-        lunch.regreso,
-
-        lunch.duracion === null
-
-          ? ""
-
-          : lunch.duracion +
-
-            " min",
-
-        salidaFinal,
-
-        estado,
-
-        obs.join(" · ")
-
-      ]);
-
-    });
-
-
-
-  const activos =
-
-    EMPLEADOS
-
-      .filter(
-
-        e => e.activo
-
-      )
-
-      .length;
-
-
-
-  const sinRegistro =
-
-    activos - conEntrada;
-
-
-
-  sh.clear();
-
-
-
-  sh.getRange(
-
-    "A1:J1"
-
-  ).merge();
-
-
-
-  sh.getRange(
-
-    "A1"
-
-  ).setValue(
-
-    "DASHBOARD ASISTENCIA ITESA - OFICINA"
-
-  );
-
-
-
-  formatTitle_(
-
-    sh.getRange(
-
-      "A1:J1"
-
-    )
-
-  );
-
-
-
-  sh.getRange(
-
-    "A2:G3"
-
-  ).setValues([
-
-    [
-
-      "FECHA",
-
-      "PERSONAL ACTIVO",
-
-      "CON ENTRADA",
-
-      "SIN REGISTRO",
-
-      "RETARDOS",
-
-      "DENTRO AHORA",
-
-      "MOVIMIENTOS"
-
-    ],
-
-    [
-
-      hoy,
-
-      activos,
-
-      conEntrada,
-
-      sinRegistro,
-
-      retardos,
-
-      dentroAhora,
-
-      movimientosHoy
-
-    ]
-
-  ]);
-
-
-
-  formatHeader_(
-
-    sh.getRange(
-
-      "A2:G2"
-
-    )
-
-  );
-
-
-
-  sh.getRange(
-
-    "A5:J5"
-
-  ).setValues([[
-
-    "ID",
-
-    "EMPLEADO",
-
-    "ÁREA",
-
-    "ENTRADA",
-
-    "SALIDA COMIDA",
-
-    "REGRESO",
-
-    "DURACIÓN",
-
-    "SALIDA FINAL",
-
-    "ESTADO",
-
-    "OBSERVACIÓN"
-
-  ]]);
-
-
-
-  formatHeader_(
-
-    sh.getRange(
-
-      "A5:J5"
-
-    )
-
-  );
-
-
-
-  if (rows.length) {
-
-
-
-    sh.getRange(
-
-      6,
-
-      1,
-
-      rows.length,
-
-      10
-
-    ).setValues(rows);
-
-
-
-  }
-
-
-
-  sh.setFrozenRows(5);
-
-  sh.autoResizeColumns(
-
-    1,
-
-    10
-
-  );
-
-}
-
-
-
-function generarReporteSemanal() {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  const sh = getOrCreateSheet_(ss, SHEET_REPORTE);
-  const movimientos = leerMovimientos_();
-  const incidencias = leerIncidencias_();
-  const fechas = fechasSemanaActual_();
-  const diasCorto = ["Lun","Mar","Mié","Jue","Vie"];
-  const movimientosValidos = {
-    "ENTRADA":true,
-    "SALIDA":true,
-    "REGRESO":true
-  };
-
-  const rows = [];
-  const detail = [];
-
-  EMPLEADOS
-    .filter(e => e.activo)
-    .forEach(emp => {
-      const celdasDia = [];
-      const rutas = [];
-      const vacaciones = [];
-      let retardosJustificados = 0;
-      let retardosNoJustificados = 0;
-      let faltas = 0;
-      let diasAsistencia = 0;
-
-      const movimientosSemanaEmp = movimientos.filter(
-        r => fechas.indexOf(r.fecha) >= 0 && r.empleadoId === emp.id
-      );
-
-      const tieneCorreccionLectura = movimientosSemanaEmp.some(r => {
-        const mov = String(r.movimiento || "").toUpperCase();
-        const nota = String(r.nota || "").toUpperCase();
-        const origen = String(r.origen || "").toUpperCase();
-        return (
-          mov === "REGISTRO ANULADO" ||
-          nota.indexOf("DOBLE ESCANEO") >= 0 ||
-          nota.indexOf("AJUSTE DIRECCIÓN") >= 0 ||
-          origen.indexOf("AJUSTE") >= 0
-        );
-      });
-
-      fechas.forEach((fecha,idx) => {
-        const recsTodos = movimientosSemanaEmp
-          .filter(r => r.fecha === fecha)
-          .sort((a,b) => a.ms - b.ms);
-
-        const recs = recsTodos.filter(
-          r => movimientosValidos[String(r.movimiento || "").toUpperCase()]
-        );
-
-        const incs = incidencias.filter(
-          x => x.fecha === fecha && x.empleadoId === emp.id && x.activo
-        );
-
-        const ruta = incs.find(x => x.tipo === "RUTA FORÁNEA");
-        const falta = incs.find(x => x.tipo === "FALTA");
-        const permiso = incs.find(x => x.tipo === "PERMISO AUTORIZADO");
-        const retardoJustificado = incs.find(x => x.tipo === "RETARDO JUSTIFICADO");
-        const ajusteSinRetardo = incs.find(x => x.tipo === "AJUSTE SIN RETARDO");
-
-        incs.forEach(inc => {
-          if (/a cuenta de vacaciones/i.test(inc.nota || "")) {
-            const tiempo = extraerTiempoVacaciones_(inc.nota);
-            const texto = diasCorto[idx] + ": " +
-              (tiempo ? tiempo + " " : "") +
-              "a cuenta de vacaciones";
-            if (vacaciones.indexOf(texto) < 0) vacaciones.push(texto);
-          }
-        });
-
-        if (falta) {
-          faltas++;
-          celdasDia.push("FALTA");
-          return;
-        }
-
-        if (ruta) {
-          rutas.push(diasCorto[idx].toLowerCase());
-          diasAsistencia++;
-          celdasDia.push("RUTA");
-          return;
-        }
-
-        const entrada = recs.find(r => r.movimiento === "ENTRADA");
-
-        if (!entrada) {
-          if (permiso) {
-            celdasDia.push("PERMISO");
-          } else if (retardoJustificado) {
-            celdasDia.push("JUSTIFICADO");
-          } else {
-            celdasDia.push(idx === 4 ? "SIN REGISTRO 09:00" : "SIN REGISTRO");
-          }
-          return;
-        }
-
-        diasAsistencia++;
-
-        const arr = timeToMin_(entrada.hora);
-        const delta = arr - 480;
-        const hora = entrada.hora.slice(0,5);
-        let estado = "";
-
-        if (delta > emp.tolerancia) {
-          if (permiso || ajusteSinRetardo) {
-            estado = permiso ? "PERMISO" : "OK";
-          } else if (retardoJustificado) {
-            if (/a cuenta de vacaciones/i.test(retardoJustificado.nota || "")) {
-              estado = "PERMISO";
-            } else {
-              estado = "RET JUST.";
-              retardosJustificados++;
-            }
-          } else {
-            estado = "RET +" + (delta - emp.tolerancia);
-            retardosNoJustificados++;
-          }
-        } else if (delta > 0) {
-          estado = "TOL";
-        } else {
-          estado = "OK";
-        }
-
-        let texto = hora + " " + estado;
-
-        if (permiso) {
-          const final = salidaFinalDelDia_(emp,recs);
-          if (final && timeToMin_(final) < timeToMin_(emp.salida)) {
-            texto += " / SALIDA " + final.slice(0,5);
-          }
-        }
-
-        celdasDia.push(texto);
-      });
-
-      let resultado = "";
-
-      if (
-        rutas.length >= 2 &&
-        retardosJustificados === 0 &&
-        retardosNoJustificados === 0 &&
-        vacaciones.length === 0 &&
-        faltas === 0
-      ) {
-        resultado =
-          diasAsistencia +
-          " días de asistencia · Ruta " +
-          listaDias_(rutas);
-      } else {
-        const partes = [];
-
-        if (faltas > 0) {
-          partes.push(
-            faltas + (faltas === 1 ? " falta" : " faltas")
-          );
-        }
-
-        if (retardosNoJustificados > 0) {
-          partes.push(
-            retardosNoJustificados +
-            (retardosNoJustificados === 1
-              ? " retardo no justificado"
-              : " retardos no justificados")
-          );
-        }
-
-        if (retardosJustificados > 0) {
-          partes.push(
-            retardosJustificados +
-            (retardosJustificados === 1
-              ? " retardo justificado"
-              : " retardos justificados") +
-            " · No penalizar"
-          );
-        }
-
-        if (vacaciones.length > 0) {
-          if (
-            retardosJustificados === 0 &&
-            retardosNoJustificados === 0 &&
-            faltas === 0
-          ) {
-            partes.push("0 retardos");
-          }
-          partes.push(vacaciones.join(" · "));
-        }
-
-        if (!partes.length && tieneCorreccionLectura) {
-          resultado = "0 incidencias · Corrección de lectura sin afectación";
-        } else if (!partes.length) {
-          resultado = "0 retardos";
-        } else {
-          resultado = partes.join(" · ");
-        }
-      }
-
-      const fila = [
-        emp.nombre,
-        celdasDia[0],
-        celdasDia[1],
-        celdasDia[2],
-        celdasDia[3],
-        celdasDia[4],
-        resultado
-      ];
-
-      rows.push(fila);
-
-      detail.push({
-        empleado:emp.nombre,
-        dias:celdasDia,
-        resultado:resultado
-      });
-    });
-
-  try {
-    sh.getRange("A1:I1").breakApart();
-  } catch (_) {}
-
-  sh.clear();
-
-  sh.getRange("A1:G1").merge();
-  sh.getRange("A1").setValue(
-    "REPORTE SEMANAL - ASISTENCIA ITESA | " +
-    fechas[0] +
-    " al " +
-    fechas[4]
-  );
-  formatTitle_(sh.getRange("A1:G1"));
-
-  sh.getRange("A2:G2").setValues([[
-    "EMPLEADO",
-    "LUN 05",
-    "MAR 06",
-    "MIÉ 07",
-    "JUE 08",
-    "VIE 09",
-    "RESULTADO PARA NÓMINA"
-  ]]);
-
-  // Los encabezados muestran el día real de la semana.
-  sh.getRange(2,2,1,5).setValues([fechas.map((f,idx) => {
-    const dd = f.slice(8,10);
-    return diasCorto[idx].toUpperCase() + " " + dd;
-  })]);
-
-  formatHeader_(sh.getRange("A2:G2"));
-
-  if (rows.length) {
-    sh.getRange(3,1,rows.length,7).setValues(rows);
-    sh.getRange(3,1,rows.length,7).setWrap(true);
-  }
-
-  sh.setFrozenRows(2);
-  sh.autoResizeColumns(1,7);
-  sh.setColumnWidth(1,250);
-  sh.setColumnWidths(2,5,120);
-  sh.setColumnWidth(7,360);
-
-  return {
-    fechas:fechas,
-    rows:rows,
-    detail:detail
-  };
-}
-
-
-
-function enviarReporteSemanal() {
-
-  _enviarReporteSemanal_(
-
-    false
-
-  );
-
-}
-
-
-
-function _enviarReporteSemanal_(forzar) {
-
-
-
-  const ahora =
-
-    new Date();
-
-
-
-  const dia =
-
-    Number(
-
-      Utilities.formatDate(
-
-        ahora,
-
-        TZ,
-
-        "u"
-
-      )
-
-    );
-
-
-
-  const hora =
-
-    Number(
-
-      Utilities.formatDate(
-
-        ahora,
-
-        TZ,
-
-        "H"
-
-      )
-
-    );
-
-
-
-  const minuto =
-
-    Number(
-
-      Utilities.formatDate(
-
-        ahora,
-
-        TZ,
-
-        "m"
-
-      )
-
-    );
-
-
-
-  if (
-
-    !forzar &&
-
-    !(
-
-      dia === 5 &&
-
-      hora === 9 &&
-
-      minuto >= 0 &&
-
-      minuto <= 5
-
-    )
-
-  ) {
-
-    return;
-
-  }
-
-
-
-  const reporte =
-
-    generarReporteSemanal();
-
-
-
-  const ss =
-
-    SpreadsheetApp.openById(
-
-      SPREADSHEET_ID
-
-    );
-
-
-
-  const config =
-
-    getOrCreateSheet_(
-
-      ss,
-
-      SHEET_CONFIG
-
-    );
-
-
-
-  const email =
-
-    String(
-
-      config
-
-        .getRange(
-
-          "B2"
-
-        )
-
-        .getValue() || ""
-
-    ).trim();
-
-
-
-  if (!email) {
-
-
-
-    config
-
-      .getRange(
-
-        "B6"
-
-      )
-
-      .setValue(
-
-        "PENDIENTE CORREO DESTINO"
-
-      );
-
-
-
-    return;
-
-  }
-
-
-
-  const weekKey =
-
-    reporte.fechas[0] +
-
-    "_" +
-
-    reporte.fechas[4];
-
-
-
-  const props =
-
-    PropertiesService
-
-      .getScriptProperties();
-
-
-
-  if (
-
-    props.getProperty(
-
-      "ULTIMO_REPORTE_ENVIADO"
-
-    ) === weekKey
-
-  ) {
-
-    return;
-
-  }
-
-
-
-  const html =
-
-    construirHtmlReporte_(
-
-      reporte
-
-    );
-
-
-
-  const csv =
-
-    construirCsvReporte_(
-
-      reporte
-
-    );
-
-
-
-  const archivo =
-
-    Utilities.newBlob(
-
-      csv,
-
-      "text/csv",
-
-      "ITESA_Asistencia_" +
-
-      reporte.fechas[0] +
-
-      "_a_" +
-
-      reporte.fechas[4] +
-
-      ".csv"
-
-    );
-
-
-
-  MailApp.sendEmail({
-
-    to:email,
-
-    subject:
-
-      "ITESA | Asistencia semanal | " +
-
-      reporte.fechas[0] +
-
-      " al " +
-
-      reporte.fechas[4],
-
-    htmlBody:html,
-
-    attachments:[
-
-      archivo
-
-    ],
-
-    name:
-
-      "ITESA - Control de Asistencia"
-
-  });
-
-
-
-  props.setProperty(
-
-    "ULTIMO_REPORTE_ENVIADO",
-
-    weekKey
-
-  );
-
-
-
-  config
-
-    .getRange(
-
-      "B6"
-
-    )
-
-    .setValue(
-
-      "ENVIADO " +
-
-      Utilities.formatDate(
-
-        new Date(),
-
-        TZ,
-
-        "dd/MM/yyyy HH:mm"
-
-      )
-
-    );
-
-}
-
-
-
-function enviarReporteDiarioEntrada() {
-
-  _enviarReporteDiarioEntrada_(
-
-    false
-
-  );
-
-}
-
-
-
-function _enviarReporteDiarioEntrada_(forzar) {
-
-
-
-  const ahora =
-
-    new Date();
-
-
-
-  const fecha =
-
-    Utilities.formatDate(
-
-      ahora,
-
-      TZ,
-
-      "yyyy-MM-dd"
-
-    );
-
-
-
-  const dia =
-
-    Number(
-
-      Utilities.formatDate(
-
-        ahora,
-
-        TZ,
-
-        "u"
-
-      )
-
-    );
-
-
-
-  const hora =
-
-    Number(
-
-      Utilities.formatDate(
-
-        ahora,
-
-        TZ,
-
-        "H"
-
-      )
-
-    );
-
-
-
-  const minuto =
-
-    Number(
-
-      Utilities.formatDate(
-
-        ahora,
-
-        TZ,
-
-        "m"
-
-      )
-
-    );
-
-
-
-  if (
-
-    dia < 1 ||
-
-    dia > 5
-
-  ) {
-
-    return;
-
-  }
-
-
-
-  if (
-
-    !forzar &&
-
-    !(
-
-      hora === 8 &&
-
-      minuto >= 15 &&
-
-      minuto <= 20
-
-    )
-
-  ) {
-
-    return;
-
-  }
-
-
-
-  const ss =
-
-    SpreadsheetApp.openById(
-
-      SPREADSHEET_ID
-
-    );
-
-
-
-  const config =
-
-    getOrCreateSheet_(
-
-      ss,
-
-      SHEET_CONFIG
-
-    );
-
-
-
-  const email =
-
-    String(
-
-      config
-
-        .getRange(
-
-          "B8"
-
-        )
-
-        .getValue() || ""
-
-    ).trim();
-
-
-
-  if (!email) {
-
-
-
-    config
-
-      .getRange(
-
-        "B11"
-
-      )
-
-      .setValue(
-
-        "PENDIENTE CORREO DIRECCIÓN"
-
-      );
-
-
-
-    return;
-
-  }
-
-
-
-  const props =
-
-    PropertiesService
-
-      .getScriptProperties();
-
-
-
-  const key =
-
-    "DIARIO_" +
-
-    fecha;
-
-
-
-  if (
-
-    props.getProperty(
-
-      "ULTIMO_REPORTE_DIARIO"
-
-    ) === key
-
-  ) {
-
-    return;
-
-  }
-
-
-
-  const reporte =
-
-    construirReporteDiarioEntrada_(
-
-      fecha
-
-    );
-
-
-
-  MailApp.sendEmail({
-
-    to:email,
-
-    subject:
-
-      "ITESA | Asistencia de entrada | " +
-
-      fecha,
-
-    htmlBody:
-
-      reporte.html,
-
-    name:
-
-      "ITESA - Control de Asistencia"
-
-  });
-
-
-
-  props.setProperty(
-
-    "ULTIMO_REPORTE_DIARIO",
-
-    key
-
-  );
-
-
-
-  config
-
-    .getRange(
-
-      "B11"
-
-    )
-
-    .setValue(
-
-      "ENVIADO " +
-
-      Utilities.formatDate(
-
-        new Date(),
-
-        TZ,
-
-        "dd/MM/yyyy HH:mm"
-
-      )
-
-    );
-
-}
-
-
-
-function construirReporteDiarioEntrada_(fecha) {
-
-
-
-  const movimientos =
-
-    leerMovimientos_();
-
-
-
-  let aTiempo = 0;
-
-  let tolerancia = 0;
-
-  let retardos = 0;
-
-  let sinRegistro = 0;
-
-
-
-  const filas =
-
-    EMPLEADOS
-
-      .filter(
-
-        e => e.activo
-
-      )
-
-      .map(emp => {
-
-
-
-        const entrada =
-
-          movimientos
-
-            .filter(
-
-              r =>
-
-                r.fecha === fecha &&
-
-                r.empleadoId ===
-
-                  emp.id &&
-
-                r.movimiento ===
-
-                  "ENTRADA"
-
-            )
-
-            .sort(
-
-              (a,b) =>
-
-                a.ms - b.ms
-
-            )[0];
-
-
-
-        let hora = "";
-
-        let estado = "";
-
-        let detalle = "";
-
-
-
-        if (!entrada) {
-
-
-
-          sinRegistro++;
-
-
-
-          estado =
-
-            "SIN REGISTRO 08:20";
-
-
-
-          detalle =
-
-            "Sin entrada registrada al corte";
-
-
-
-        } else {
-
-
-
-          hora =
-
-            entrada.hora.slice(
-
-              0,
-
-              5
-
-            );
-
-
-
-          const delta =
-
-            timeToMin_(
-
-              entrada.hora
-
-            ) - 480;
-
-
-
-          if (delta <= 0) {
-
-
-
-            aTiempo++;
-
-            estado =
-
-              "A TIEMPO";
-
-
-
-          } else if (
-
-            delta <=
-
-            emp.tolerancia
-
-          ) {
-
-
-
-            tolerancia++;
-
-
-
-            estado =
-
-              "TOLERANCIA";
-
-
-
-            detalle =
-
-              "+" +
-
-              delta +
-
-              " min después de las 8:00";
-
-
-
-          } else {
-
-
-
-            retardos++;
-
-
-
-            estado =
-
-              "RETARDO";
-
-
-
-            detalle =
-
-              "+" +
-
-              (
-
-                delta -
-
-                emp.tolerancia
-
-              ) +
-
-              " min fuera de tolerancia";
-
-
-
-          }
-
-        }
-
-
-
-        return {
-
-          empleado:
-
-            emp.nombre,
-
-          area:
-
-            emp.area,
-
-          hora:
-
-            hora,
-
-          estado:
-
-            estado,
-
-          detalle:
-
-            detalle
-
-        };
-
-      });
-
-
-
-  const rowsHtml =
-
-    filas.map(r => {
-
-
-
-      let bg =
-
-        "#ffffff";
-
-
-
-      let color =
-
-        "#222222";
-
-
-
-      if (
-
-        r.estado ===
-
-        "A TIEMPO"
-
-      ) {
-
-
-
-        bg =
-
-          "#e8f5e9";
-
-
-
-        color =
-
-          "#1b5e20";
-
-
-
-      } else if (
-
-        r.estado ===
-
-        "TOLERANCIA"
-
-      ) {
-
-
-
-        bg =
-
-          "#fff8e1";
-
-
-
-        color =
-
-          "#7a5a00";
-
-
-
-      } else if (
-
-        r.estado ===
-
-        "RETARDO"
-
-      ) {
-
-
-
-        bg =
-
-          "#ffebee";
-
-
-
-        color =
-
-          "#a61b1b";
-
-
-
-      } else {
-
-
-
-        bg =
-
-          "#eeeeee";
-
-
-
-        color =
-
-          "#444444";
-
-
-
-      }
-
-
-
-      return (
-
-        "<tr style='background:" +
-
-        bg +
-
-        ";color:" +
-
-        color +
-
-        "'>" +
-
-
-
-        "<td style='padding:7px;border:1px solid #ccc'>" +
-
-        htmlEscape_(
-
-          r.empleado
-
-        ) +
-
-        "</td>" +
-
-
-
-        "<td style='padding:7px;border:1px solid #ccc'>" +
-
-        htmlEscape_(
-
-          r.area
-
-        ) +
-
-        "</td>" +
-
-
-
-        "<td style='padding:7px;border:1px solid #ccc;text-align:center'><b>" +
-
-        htmlEscape_(
-
-          r.hora || "—"
-
-        ) +
-
-        "</b></td>" +
-
-
-
-        "<td style='padding:7px;border:1px solid #ccc'><b>" +
-
-        htmlEscape_(
-
-          r.estado
-
-        ) +
-
-        "</b></td>" +
-
-
-
-        "<td style='padding:7px;border:1px solid #ccc'>" +
-
-        htmlEscape_(
-
-          r.detalle
-
-        ) +
-
-        "</td>" +
-
-
-
-        "</tr>"
-
-      );
-
-
-
-    }).join("");
-
-
-
-  const html =
-
-    "<div style='font-family:Arial,sans-serif;color:#222'>" +
-
-
-
-    "<h2 style='margin-bottom:4px'>ITESA - Asistencia de entrada</h2>" +
-
-
-
-    "<p style='margin-top:0'>Fecha: <b>" +
-
-    fecha +
-
-    "</b> · Corte: <b>08:20 AM</b></p>" +
-
-
-
-    "<p>" +
-
-
-
-    "<b>A tiempo:</b> " +
-
-    aTiempo +
-
-    " &nbsp; | &nbsp; " +
-
-
-
-    "<b>Tolerancia:</b> " +
-
-    tolerancia +
-
-    " &nbsp; | &nbsp; " +
-
-
-
-    "<b>Retardos:</b> " +
-
-    retardos +
-
-    " &nbsp; | &nbsp; " +
-
-
-
-    "<b>Sin registro:</b> " +
-
-    sinRegistro +
-
-
-
-    "</p>" +
-
-
-
-    "<table style='border-collapse:collapse;font-size:12px;width:100%;max-width:850px'>" +
-
-
-
-    "<thead><tr style='background:#0b1f33;color:#fff'>" +
-
-
-
-    "<th style='padding:7px;text-align:left'>Empleado</th>" +
-
-    "<th style='padding:7px;text-align:left'>Área</th>" +
-
-    "<th style='padding:7px'>Entrada</th>" +
-
-    "<th style='padding:7px;text-align:left'>Estado</th>" +
-
-    "<th style='padding:7px;text-align:left'>Detalle</th>" +
-
-
-
-    "</tr></thead>" +
-
-
-
-    "<tbody>" +
-
-    rowsHtml +
-
-    "</tbody>" +
-
-
-
-    "</table>" +
-
-
-
-    "<p style='color:#666;font-size:11px'>" +
-
-
-
-    "A TIEMPO = hasta 08:00 · " +
-
-    "TOLERANCIA = 08:01 a 08:10 · " +
-
-    "RETARDO = después de 08:10. " +
-
-    "SIN REGISTRO 08:20 no equivale todavía a falta definitiva." +
-
-
-
-    "</p>" +
-
-
-
-    "</div>";
-
-
-
-  return {
-
-    html:html,
-
-    filas:filas
-
-  };
-
-}
-
-
-
-function instalarTriggerDiario_() {
-
-
-
-  ScriptApp
-
-    .getProjectTriggers()
-
-    .forEach(t => {
-
-
-
-      if (
-
-        t.getHandlerFunction() ===
-
-        "enviarReporteDiarioEntrada"
-
-      ) {
-
-
-
-        ScriptApp.deleteTrigger(
-
-          t
-
-        );
-
-
-
-      }
-
-    });
-
-
-
-  ScriptApp
-
-    .newTrigger(
-
-      "enviarReporteDiarioEntrada"
-
-    )
-
-    .timeBased()
-
-    .everyMinutes(5)
-
-    .create();
-
-}
-
-
-
-function probarReporteDiario() {
-
-
-
-  const props =
-
-    PropertiesService
-
-      .getScriptProperties();
-
-
-
-  props.deleteProperty(
-
-    "ULTIMO_REPORTE_DIARIO"
-
-  );
-
-
-
-  _enviarReporteDiarioEntrada_(
-
-    true
-
-  );
-
-}
-
-
-
-function instalarTriggerViernes_() {
-
-
-
-  ScriptApp
-
-    .getProjectTriggers()
-
-    .forEach(t => {
-
-
-
-      if (
-
-        t.getHandlerFunction() ===
-
-        "enviarReporteSemanal"
-
-      ) {
-
-
-
-        ScriptApp.deleteTrigger(
-
-          t
-
-        );
-
-
-
-      }
-
-    });
-
-
-
-  ScriptApp
-
-    .newTrigger(
-
-      "enviarReporteSemanal"
-
-    )
-
-    .timeBased()
-
-    .everyMinutes(5)
-
-    .create();
-
-}
-
-
-
-function probarReporteSemanal() {
-
-
-
-  const props =
-
-    PropertiesService
-
-      .getScriptProperties();
-
-
-
-  props.deleteProperty(
-
-    "ULTIMO_REPORTE_ENVIADO"
-
-  );
-
-
-
-  _enviarReporteSemanal_(
-
-    true
-
-  );
-
-}
-
-
-
-function detectarComida_(emp,recs) {
-
-
-
-  if (
-
-    !emp.comidaAplica
-
-  ) {
-
-
-
-    return {
-
-      salida:"NO APLICA",
-
-      regreso:"NO APLICA",
-
-      duracion:null
-
-    };
-
-
-
-  }
-
-
-
-  for (
-
-    let i = 0;
-
-    i < recs.length - 1;
-
-    i++
-
-  ) {
-
-
-
-    if (
-
-      recs[i].movimiento ===
-
-        "SALIDA" &&
-
-      recs[i + 1].movimiento ===
-
-        "REGRESO"
-
-    ) {
-
-
-
-      const salidaMin =
-
-        timeToMin_(
-
-          recs[i].hora
-
-        );
-
-
-
-      if (
-
-        salidaMin >= 750 &&
-
-        salidaMin <= 930
-
-      ) {
-
-
-
-        return {
-
-          salida:
-
-            recs[i].hora.slice(
-
-              0,
-
-              5
-
-            ),
-
-          regreso:
-
-            recs[i + 1].hora.slice(
-
-              0,
-
-              5
-
-            ),
-
-          duracion:
-
-            Math.round(
-
-              (
-
-                recs[i + 1].ms -
-
-                recs[i].ms
-
-              ) /
-
-              60000
-
-            )
-
-        };
-
-
-
-      }
-
-    }
-
-  }
-
-
-
-  return {
-
-    salida:"",
-
-    regreso:"",
-
-    duracion:null
-
-  };
-
-}
-
-
-
-function salidaFinalDelDia_(emp,recs) {
-
-
-
-  if (!recs.length) {
-
-    return "";
-
-  }
-
-
-
-  const last =
-
-    recs[
-
-      recs.length - 1
-
-    ];
-
-
-
-  if (
-
-    last.movimiento !==
-
-    "SALIDA"
-
-  ) {
-
-    return "";
-
-  }
-
-
-
-  const dep =
-
-    timeToMin_(
-
-      last.hora
-
-    );
-
-
-
-  const pareceComida =
-
-    emp.comidaAplica &&
-
-    dep >= 750 &&
-
-    dep <= 930;
-
-
-
-  return pareceComida
-
-    ? ""
-
-    : last.hora;
-
-}
-
-
-
-function patronLlegadas_(empleadoId,movimientos) {
-
-
-
-  const entradas =
-
-    movimientos
-
-      .filter(
-
-        r =>
-
-          r.empleadoId ===
-
-            empleadoId &&
-
-          r.movimiento ===
-
-            "ENTRADA"
-
-      )
-
-      .sort(
-
-        (a,b) =>
-
-          b.ms - a.ms
-
-      );
-
-
-
-  const seen = {};
-
-  const ultimas = [];
-
-
-
-  entradas.forEach(r => {
-
-
-
-    if (
-
-      !seen[r.fecha] &&
-
-      ultimas.length < 5
-
-    ) {
-
-
-
-      seen[r.fecha] =
-
-        true;
-
-
-
-      ultimas.push(
-
-        r
-
-      );
-
-
-
-    }
-
-  });
-
-
-
-  return {
-
-    total:
-
-      ultimas.length,
-
-    despues8:
-
-      ultimas.filter(
-
-        r =>
-
-          timeToMin_(
-
-            r.hora
-
-          ) > 480
-
-      ).length
-
-  };
-
-}
-
-
-
-function leerMovimientos_() {
-
-
-
-  const ss =
-
-    SpreadsheetApp.openById(
-
-      SPREADSHEET_ID
-
-    );
-
-
-
-  const sh =
-
-    ss.getSheetByName(
-
-      SHEET_MOVIMIENTOS
-
-    );
-
-
-
-  if (
-
-    !sh ||
-
-    sh.getLastRow() <= 1
-
-  ) {
-
-    return [];
-
-  }
-
-
-
-  const values =
-
-    sh.getRange(
-
-      2,
-
-      1,
-
-      sh.getLastRow() - 1,
-
-      11
-
-    ).getValues();
-
-
-
-  return values.map(r => ({
-
-    eventoId:
-
-      String(r[0] || ""),
-
-
-
-    fecha:
-
-      normalizeDateCell_(
-
-        r[1]
-
-      ),
-
-
-
-    hora:
-
-      normalizeTimeCell_(
-
-        r[2]
-
-      ),
-
-
-
-    empleadoId:
-
-      String(r[3] || ""),
-
-
-
-    empleado:
-
-      String(r[4] || ""),
-
-
-
-    area:
-
-      String(r[5] || ""),
-
-
-
-    movimiento:
-
-      String(r[6] || ""),
-
-
-
-    nota:
-
-      String(r[7] || ""),
-
-
-
-    ms:
-
-      Number(r[8] || 0),
-
-
-
-    recibido:
-
-      r[9],
-
-
-
-    origen:
-
-      String(r[10] || "")
-
-  }));
-
-}
-
-function leerIncidencias_() {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  const sh = ss.getSheetByName(SHEET_INCIDENCIAS);
-
-  if (!sh || sh.getLastRow() <= 1) {
-    return [];
-  }
-
-  const values = sh
-    .getRange(2,1,sh.getLastRow() - 1,6)
-    .getValues();
-
-  return values
-    .map(r => ({
-      fecha:normalizeDateCell_(r[0]),
-      empleadoId:String(r[1] || "").trim(),
-      tipo:String(r[2] || "").trim().toUpperCase(),
-      nota:String(r[3] || "").trim(),
-      activo:String(r[4] || "").trim().toUpperCase() === "SI",
-      capturadoPor:String(r[5] || "").trim()
-    }))
-    .filter(x => x.fecha && x.empleadoId);
-}
-
-function extraerTiempoVacaciones_(nota) {
-  const s = String(nota || "");
-  const m = s.match(
-    /(\d+\s*h(?:\s*\d+\s*min)?|\d+\s*horas?|\d+\s*min)/i
-  );
-
-  if (!m) return "";
-
-  return m[1]
-    .replace(/\bhoras?\b/gi,"h")
-    .replace(/\s+/g," ")
-    .trim();
-}
-
-function listaDias_(dias) {
-  const a = (dias || []).filter(Boolean);
-
-  if (!a.length) return "";
-  if (a.length === 1) return a[0];
-  if (a.length === 2) return a[0] + " y " + a[1];
-
-  return (
-    a.slice(0,-1).join(", ") +
-    " y " +
-    a[a.length - 1]
-  );
-}
-
-
-
-
-function fechasSemanaActual_() {
-
-
-
-  const local =
-
-    Utilities.formatDate(
-
-      new Date(),
-
-      TZ,
-
-      "yyyy-MM-dd"
-
-    );
-
-
-
-  const parts =
-
-    local
-
-      .split("-")
-
-      .map(Number);
-
-
-
-  const base =
-
-    new Date(
-
-      Date.UTC(
-
-        parts[0],
-
-        parts[1] - 1,
-
-        parts[2],
-
-        12,
-
-        0,
-
-        0
-
-      )
-
-    );
-
-
-
-  const dow =
-
-    base.getUTCDay();
-
-
-
-  const diffMonday =
-
-    (dow + 6) % 7;
-
-
-
-  const monday =
-
-    new Date(
-
-      base.getTime() -
-
-      diffMonday *
-
-      86400000
-
-    );
-
-
-
-  const fechas = [];
-
-
-
-  for (
-
-    let i = 0;
-
-    i < 5;
-
-    i++
-
-  ) {
-
-
-
-    const d =
-
-      new Date(
-
-        monday.getTime() +
-
-        i *
-
-        86400000
-
-      );
-
-
-
-    fechas.push(
-
-      Utilities.formatDate(
-
-        d,
-
-        "UTC",
-
-        "yyyy-MM-dd"
-
-      )
-
-    );
-
-
-
-  }
-
-
-
-  return fechas;
-
-}
-
-
-
-function construirHtmlReporte_(reporte) {
-  const rows = reporte.detail
-    .map(r => {
-      return (
-        "<tr>" +
-        "<td style='padding:7px;border:1px solid #ccc'>" +
-        htmlEscape_(r.empleado) +
-        "</td>" +
-        r.dias
-          .map(x =>
-            "<td style='padding:7px;border:1px solid #ccc;text-align:center'>" +
-            htmlEscape_(x) +
-            "</td>"
-          )
-          .join("") +
-        "<td style='padding:7px;border:1px solid #ccc;font-weight:bold'>" +
-        htmlEscape_(r.resultado) +
-        "</td>" +
-        "</tr>"
-      );
-    })
-    .join("");
-
-  const dias = reporte.fechas.map((f,idx) => {
-    const nombres = ["Lun","Mar","Mié","Jue","Vie"];
-    return nombres[idx] + " " + f.slice(8,10);
-  });
-
-  return (
-    "<div style='font-family:Arial,sans-serif;color:#222'>" +
-
-    "<h2 style='margin-bottom:4px'>ITESA - Reporte semanal de asistencia</h2>" +
-
-    "<p style='margin-top:0'>Semana: <b>" +
-    reporte.fechas[0] +
-    " al " +
-    reporte.fechas[4] +
-    "</b></p>" +
-
-    "<p><b>Corte del viernes: 9:00 AM.</b> " +
-    "El viernes se evalúa llegada/presencia; la comida y salida del viernes aún no forman parte del corte.</p>" +
-
-    "<p style='background:#f3f6f8;padding:10px;border-left:4px solid #0b1f33'>" +
-    "<b>Criterio para Nóminas:</b> las incidencias confirmadas por Dirección prevalecen sobre la lectura cruda del QR. " +
-    "RUTA cuenta como asistencia; permisos y tiempo a cuenta de vacaciones se muestran expresamente; " +
-    "las correcciones de lectura no generan incidencia.</p>" +
-
-    "<table style='border-collapse:collapse;font-size:12px;width:100%;max-width:1200px'>" +
-
-    "<thead><tr style='background:#0b1f33;color:white'>" +
-
-    "<th style='padding:7px;text-align:left'>Empleado</th>" +
-    dias.map(d =>
-      "<th style='padding:7px;text-align:center'>" +
-      htmlEscape_(d) +
-      "</th>"
-    ).join("") +
-    "<th style='padding:7px;text-align:left'>Resultado para Nómina</th>" +
-
-    "</tr></thead>" +
-
-    "<tbody>" +
-    rows +
-    "</tbody>" +
-
-    "</table>" +
-
-    "<p style='color:#666;font-size:11px'>" +
-    "<b>Leyenda:</b> OK = llegada a tiempo · TOL = dentro de tolerancia · " +
-    "RET = retardo · RET JUST. = retardo justificado · RUTA = asistencia por trabajo fuera de oficina · " +
-    "PERMISO = incidencia autorizada por Dirección." +
-    "</p>" +
-
-    "<p style='color:#666;font-size:11px'>" +
-    "Generado automáticamente por ITESA Asistencia Oficina." +
-    "</p>" +
-
-    "</div>"
-  );
-}
-
-
-
-function construirCsvReporte_(reporte) {
-  const dias = reporte.fechas.map((f,idx) => {
-    const nombres = ["LUN","MAR","MIE","JUE","VIE"];
-    return nombres[idx] + " " + f.slice(8,10);
-  });
-
-  const header = [
-    "EMPLEADO",
-    dias[0],
-    dias[1],
-    dias[2],
-    dias[3],
-    dias[4],
-    "RESULTADO PARA NOMINA"
-  ];
-
-  const lines = [
-    header.map(csvEscape_).join(",")
-  ];
-
-  reporte.detail.forEach(r => {
-    lines.push(
-      [
-        r.empleado,
-        r.dias[0],
-        r.dias[1],
-        r.dias[2],
-        r.dias[3],
-        r.dias[4],
-        r.resultado
-      ]
-        .map(csvEscape_)
-        .join(",")
-    );
-  });
-
-  return "\uFEFF" + lines.join("\n");
-}
-
-
-
-function getOrCreateSheet_(ss,name) {
-
-
-
-  return (
-
-    ss.getSheetByName(
-
-      name
-
-    ) ||
-
-    ss.insertSheet(
-
-      name
-
-    )
-
-  );
-
-}
-
-
-
-function timeToMin_(time) {
-
-
-
-  if (!time) {
-
-    return 0;
-
-  }
-
-
-
-  const p =
-
-    String(time)
-
-      .split(":")
-
-      .map(Number);
-
-
-
-  return (
-
-    (p[0] || 0) *
-
-    60 +
-
-    (p[1] || 0)
-
-  );
-
-}
-
-
-
-function sha256Hex_(text) {
-
-
-
-  const digest =
-
-    Utilities.computeDigest(
-
-      Utilities.DigestAlgorithm.SHA_256,
-
-      text,
-
-      Utilities.Charset.UTF_8
-
-    );
-
-
-
-  return digest.map(
-
-    function(b) {
-
-
-
-      const v =
-
-        (b + 256) %
-
-        256;
-
-
-
-      return (
-
-        "0" +
-
-        v.toString(16)
-
-      ).slice(-2);
-
-
-
-    }
-
-  ).join("");
-
-}
-
-
-
-function jsonResponse_(obj) {
-
-
-
-  return ContentService
-
-    .createTextOutput(
-
-      JSON.stringify(
-
-        obj
-
-      )
-
-    )
-
-    .setMimeType(
-
-      ContentService.MimeType.JSON
-
-    );
-
-}
-
-
-
-function formatHeader_(range) {
-
-
-
-  range
-
-    .setBackground(
-
-      "#1f3d5c"
-
-    )
-
-    .setFontColor(
-
-      "#ffffff"
-
-    )
-
-    .setFontWeight(
-
-      "bold"
-
-    );
-
-}
-
-
-
-function formatTitle_(range) {
-
-
-
-  range
-
-    .setBackground(
-
-      "#0b1f33"
-
-    )
-
-    .setFontColor(
-
-      "#ffffff"
-
-    )
-
-    .setFontWeight(
-
-      "bold"
-
-    )
-
-    .setFontSize(
-
-      14
-
-    );
-
-}
-
-
-
-function csvEscape_(value) {
-
-
-
-  const s =
-
-    String(
-
-      value == null
-
-        ? ""
-
-        : value
-
-    ).replace(
-
-      /"/g,
-
-      '""'
-
-    );
-
-
-
-  return (
-
-    '"' +
-
-    s +
-
-    '"'
-
-  );
-
-}
-
-
-
-function htmlEscape_(value) {
-
-
-
-  return String(
-
-    value == null
-
-      ? ""
-
-      : value
-
-  )
-
-    .replace(
-
-      /&/g,
-
-      "&amp;"
-
-    )
-
-    .replace(
-
-      /</g,
-
-      "&lt;"
-
-    )
-
-    .replace(
-
-      />/g,
-
-      "&gt;"
-
-    )
-
-    .replace(
-
-      /"/g,
-
-      "&quot;"
-
-    );
-
-}
+},500);
+
+setTimeout(()=>{pingCentral();syncPending(true)},1200);
+setInterval(()=>syncPending(false),15000);
+setInterval(pingCentral,60000);
+</script><!-- ITESA KIOSCO SYNC V5.3 · lectura inmediata + cola FIFO + sincronización en segundo plano -->
+</body></html>
