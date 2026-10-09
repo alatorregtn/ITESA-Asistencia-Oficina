@@ -28,6 +28,8 @@ video{width:100%;height:100%;object-fit:cover;background:#000}
 .frame{position:absolute;width:min(72%,420px);aspect-ratio:1/1;left:50%;top:47%;transform:translate(-50%,-50%);border:4px solid #fff;border-radius:30px;box-shadow:0 0 0 9999px rgba(0,0,0,.30),0 0 24px rgba(255,255,255,.28);pointer-events:none}
 .frame:before,.frame:after{content:"";position:absolute;inset:12px;border-radius:20px;border:1px solid rgba(255,255,255,.25)}
 .msg{position:absolute;left:14px;right:14px;bottom:14px;background:rgba(0,0,0,.66);backdrop-filter:blur(8px);padding:12px 10px;border-radius:13px;text-align:center;font-size:13px;font-weight:850;letter-spacing:.2px}
+.confirmToast{display:none;position:absolute;z-index:8;left:14px;right:14px;top:14px;padding:13px 12px;border-radius:14px;text-align:center;font-size:15px;font-weight:1000;letter-spacing:.2px;box-shadow:0 8px 24px rgba(0,0,0,.35);pointer-events:none}
+.confirmToast.show{display:block}
 .activate{width:100%;margin-top:12px;padding:17px 14px;background:#fff;color:#07111c;border-radius:16px;font-size:18px;font-weight:950;box-shadow:0 8px 26px rgba(0,0,0,.22)}
 .activate:active{transform:scale(.99)}
 .hint{margin:10px 2px 0;color:#94a9bc;font-size:11px;line-height:1.35;text-align:center}
@@ -83,10 +85,11 @@ th{color:#9fb2c7;font-size:10px;text-transform:uppercase}
         <video id="video" autoplay muted playsinline></video>
         <canvas id="canvas"></canvas>
         <div class="frame"></div>
+        <div id="scanConfirm" class="confirmToast"></div>
         <div id="msg" class="msg">INICIANDO CÁMARA…</div>
       </div>
       <button id="activate" class="activate">ACTIVAR CÁMARA</button>
-      <p class="hint">Centra tu QR en el recuadro. Debe vibrar y mostrar “QR LEÍDO” mientras aún está enfocado; entonces retíralo. El siguiente compañero puede escanear de inmediato.</p>
+      <p class="hint">Centra tu QR en el recuadro. Debe mostrar “QR LEÍDO” mientras aún está enfocado; entonces retíralo. El siguiente compañero puede escanear de inmediato.</p>
       <div id="diag" class="small"></div>
     </div>
   </section>
@@ -137,7 +140,7 @@ const WEB_APP_URL="https://script.google.com/macros/s/AKfycbz4ErGwtHBJkL0alabIad
 let syncRunning=false,centralReachable=false,lastCentralOk=0,centralFailCount=0;
 const $=x=>document.getElementById(x),video=$("video"),canvas=$("canvas"),ctx=canvas.getContext("2d",{willReadFrequently:true});
 let scanning=false,stream=null,wakeLock=null,holdTimer=null,starting=false;
-let scanQueue=[],queueRunning=false,resultTimer=null;
+let scanQueue=[],queueRunning=false,resultTimer=null,confirmTimer=null;
 
 /* BLOQUEO DE QR:
    El mismo QR no puede volver a procesarse mientras siga visible.
@@ -291,15 +294,45 @@ function setReadyMessage(){
   }
 }
 
+function shortEmployeeName(fullName){
+  const raw=String(fullName||"").trim();
+  if(!raw)return "";
+  const parts=raw.split(",");
+  if(parts.length<2)return raw;
+  const surnames=parts[0].trim().split("/");
+  const given=parts.slice(1).join(",").trim().split(/\s+/)[0]||"";
+  const surname=surnames[0]||"";
+  return `${given} ${surname}`.trim().toUpperCase();
+}
+
+function showScanConfirmation(kind,employee,movement,time){
+  const box=$("scanConfirm");
+  if(!box)return;
+
+  const move=String(movement||"")
+    .replace(" REGISTRADA","")
+    .replace(" REGISTRADO","");
+
+  box.textContent=`✓ ${shortEmployeeName(employee)} · ${move} ${String(time||"").slice(0,5)}`;
+  box.className=`confirmToast show ${kind}`;
+
+  if(confirmTimer)clearTimeout(confirmTimer);
+  confirmTimer=setTimeout(()=>{
+    box.className="confirmToast";
+    box.textContent="";
+    confirmTimer=null;
+  },1700);
+}
+
 function pop(kind,e,m,t,note,syncText=""){
   const canUseFullScreen=!lockedQr&&scanQueue.length===0;
 
   try{navigator.vibrate?.([90,70,90])}catch(_){}
+  showScanConfirmation(kind,e,m,t);
 
   if(!canUseFullScreen){
     hideResult();
-    $("msg").textContent=`✓ ${m} · ${t} · SIGUIENTE QR`;
-    setTimeout(()=>setReadyMessage(),1200);
+    setReadyMessage();
     return;
   }
 
@@ -545,7 +578,7 @@ async function postMovement(rec){
    capturedAt:rec.ts,
    type:rec.type,
    note:rec.note||"",
-   origin:"KIOSCO OFICINA V5.4"
+   origin:"KIOSCO OFICINA V5.5"
  };
 
  // El POST se hace en modo no-cors para que Android/Chrome no bloquee el envío.
@@ -993,5 +1026,5 @@ setTimeout(async()=>{
 setTimeout(()=>{pingCentral();syncPending(true)},1200);
 setInterval(()=>syncPending(false),15000);
 setInterval(pingCentral,60000);
-</script><!-- ITESA KIOSCO SYNC V5.4 · lector QR rápido + cola FIFO + sincronización en segundo plano -->
+</script><!-- ITESA KIOSCO SYNC V5.5 · lector QR rápido + confirmación no bloqueante + cola FIFO -->
 </body></html>
